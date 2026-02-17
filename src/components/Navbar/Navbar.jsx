@@ -3,18 +3,16 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useCart } from "../Cart/CartContext";
 
-export default function Navbar({ language, setLanguage,loggedIn }) {
+export default function Navbar({ language, setLanguage, loggedIn }) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const { count } = useCart();
 
-  const showCustomerNav =
-    loggedIn && location.pathname !== "/";
-  
-  return (
-    <header className="w-full bg-white border-b shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+  const showCustomerNav = loggedIn && location.pathname !== "/";
 
+  return (
+<header className="w-full bg-white shadow-md shadow-black/5 sticky top-0 z-100">
+<div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
         {/* LEFT */}
         <nav className="hidden md:flex gap-8 font-medium">
           {!showCustomerNav ? (
@@ -44,11 +42,14 @@ export default function Navbar({ language, setLanguage,loggedIn }) {
           ) : (
             <>
               <Link to="/" className="text-gray-700 hover:text-orange-500">
-              <i className="fa-solid fa-house"></i> Home
+                <i className="fa-solid fa-house"></i> Home
               </Link>
 
-              <Link to="/explore" className="text-gray-700 hover:text-orange-500">
-              <i className="fa-solid fa-magnifying-glass"></i> Explore
+              <Link
+                to="/explore"
+                className="text-gray-700 hover:text-orange-500"
+              >
+                <i className="fa-solid fa-magnifying-glass"></i> Explore
               </Link>
             </>
           )}
@@ -67,7 +68,6 @@ export default function Navbar({ language, setLanguage,loggedIn }) {
 
         {/* RIGHT */}
         <div className="hidden md:flex items-center gap-4">
-
           <button
             onClick={() => setLanguage(language === "en" ? "hi" : "en")}
             className="border px-3 py-1 rounded-full text-sm"
@@ -90,28 +90,25 @@ export default function Navbar({ language, setLanguage,loggedIn }) {
             </>
           ) : (
             <>
-             <Link to="/cart" className="relative text-xl cursor-pointer">
-  <i className="fa-solid fa-basket-shopping"></i>
-  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-    {count}
-  </span>
-</Link>
+              <Link to="/cart" className="relative text-xl cursor-pointer">
+                <i className="fa-solid fa-basket-shopping"></i>
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                  {count}
+                </span>
+              </Link>
 
-
-              <img
-                src="https://i.pravatar.cc/40"
-                alt="profile"
-                className="w-10 h-10 rounded-full border"
-              />
+              <Link to="/profile">
+                <img
+                  src="https://i.pravatar.cc/40"
+                  className="w-10 h-10 rounded-full border cursor-pointer"
+                />
+              </Link>
             </>
           )}
         </div>
 
         {/* MOBILE BUTTON */}
-        <button
-          className="md:hidden text-2xl"
-          onClick={() => setOpen(!open)}
-        >
+        <button className="md:hidden text-2xl" onClick={() => setOpen(!open)}>
           {open ? "✖" : "☰"}
         </button>
       </div>
@@ -119,7 +116,6 @@ export default function Navbar({ language, setLanguage,loggedIn }) {
       {/* MOBILE MENU */}
       {open && (
         <div className="md:hidden border-t bg-white px-6 py-4 space-y-4">
-
           <button
             onClick={() => setLanguage(language === "en" ? "hi" : "en")}
             className="border px-3 py-1 rounded-full text-sm"
@@ -129,15 +125,27 @@ export default function Navbar({ language, setLanguage,loggedIn }) {
 
           {!showCustomerNav ? (
             <>
-              <NavLink to="/about" onClick={() => setOpen(false)} className="block">
+              <NavLink
+                to="/about"
+                onClick={() => setOpen(false)}
+                className="block"
+              >
                 About Us
               </NavLink>
 
-              <NavLink to="/how" onClick={() => setOpen(false)} className="block">
+              <NavLink
+                to="/how"
+                onClick={() => setOpen(false)}
+                className="block"
+              >
                 How it Works
               </NavLink>
 
-              <Link to="/login" onClick={() => setOpen(false)} className="block">
+              <Link
+                to="/login"
+                onClick={() => setOpen(false)}
+                className="block"
+              >
                 Login
               </Link>
 
@@ -152,11 +160,15 @@ export default function Navbar({ language, setLanguage,loggedIn }) {
           ) : (
             <>
               <Link to="/" onClick={() => setOpen(false)} className="block">
-              <i className="fa-solid fa-house"></i> Home
+                <i className="fa-solid fa-house"></i> Home
               </Link>
 
-              <Link to="/explore" onClick={() => setOpen(false)} className="block">
-              <i className="fa-solid fa-magnifying-glass"></i>  Explore
+              <Link
+                to="/explore"
+                onClick={() => setOpen(false)}
+                className="block"
+              >
+                <i className="fa-solid fa-magnifying-glass"></i> Explore
               </Link>
             </>
           )}

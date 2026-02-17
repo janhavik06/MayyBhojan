@@ -13,6 +13,8 @@ import Cart from "./components/Cart/Cart";
 import Address from "./components/Cart/Address";
 import Payment from "./components/Cart/Payment";
 import Confirmation from "./components/Cart/Confirmation";
+import Profile from "./components/Customer/Dashboard/Profile";
+import ScrollToTop from "./ScrollToTop";
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -25,6 +27,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+    <ScrollToTop/>
       <Routes>
         <Route
           element={
@@ -52,6 +55,7 @@ export default function App() {
 <Route path="/address" element={<Address />} />
 <Route path="/payment" element={<Payment />} />
 <Route path="/confirm" element={<Confirmation />} />
+<Route path="/profile" element={<Profile />} />
 
           <Route path="/about" element={<About />} />
           <Route path="/how" element={<How />} />
