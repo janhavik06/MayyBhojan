@@ -2,38 +2,21 @@ import { profileData as data } from "../../../data/profileData";
 
 export default function Profile() {
   return (
-    <div className="min-h-screen bg-[#F6F2EF] flex">
+    <div className="min-h-screen bg-[#F6F2EF]">
 
-      {/* SIDEBAR — DESKTOP ONLY */}
-      <aside className="
-        hidden md:flex
-        w-64 bg-white shadow-md shadow-black/5
-        fixed left-0 top-18 bottom-0 z-50
-        flex-col
-      ">
-        {/* TOP MENU */}
-        <div className="p-6 space-y-6 flex-1 overflow-y-auto scrollbar-hide">
-          <SidebarItem label="My Orders" active />
-          <SidebarItem label="Favorites" />
-          <SidebarItem label="Settings" />
-        </div>
+      {/* MAIN WRAPPER */}
+      <main
+        className="
 
-        {/* LOGOUT */}
-        <div className="p-6 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]">
-          <SidebarItem label="Logout" danger />
-        </div>
-      </aside>
+          // px-4 sm:px-6 md:px-10
+          // py-6 md:py-10
+          w-full px-6 md:px-10
 
-      {/* MAIN */}
-      <main className="
-        flex-1 w-full
-        p-4 sm:p-6 md:p-10
-        md:ml-64
-        overflow-y-auto
-      ">
+        "
+      >
 
         {/* HEADER */}
-        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mb-10">
 
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold">
@@ -44,7 +27,7 @@ export default function Profile() {
             </p>
           </div>
 
-          <div className="flex gap-6 sm:gap-10 text-left md:text-right">
+          <div className="flex gap-8 md:gap-10">
             <Stat label="Orders" value={data.orders} />
             <Stat label="Subscribed" value={data.subscribed} />
           </div>
@@ -58,7 +41,7 @@ export default function Profile() {
 
         {/* ORDERS */}
         <Section title="Recent Orders">
-          {data.recentOrders.map(o => (
+          {data.recentOrders.map((o) => (
             <OrderCard key={o.id} order={o} />
           ))}
         </Section>
@@ -74,12 +57,27 @@ export default function Profile() {
 
         {/* MANAGE PROFILE */}
         <Section title="Manage My Profile">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <ManageCard title="Delivery Address" />
-            <ManageCard title="Payment Methods" />
-            <ManageCard title="Language Settings" />
-          </div>
-        </Section>
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <ManageCard
+      icon="fa-location-dot"
+      title="Delivery Address"
+      subtitle="Manage your home/office"
+    />
+
+    <ManageCard
+      icon="fa-wallet"
+      title="Payment Methods"
+      subtitle="Manage UPI & Cards"
+    />
+
+    <ManageCard
+      icon="fa-language"
+      title="Language Settings"
+      subtitle="English / Regional"
+    />
+  </div>
+</Section>
+
 
       </main>
     </div>
@@ -89,20 +87,6 @@ export default function Profile() {
 //////////////////////////////
 // COMPONENTS
 //////////////////////////////
-
-function SidebarItem({ label, active, danger }) {
-  return (
-    <div
-      className={`
-        p-3 rounded-lg cursor-pointer transition
-        ${active ? "bg-orange-100 text-orange-600" : ""}
-        ${danger ? "text-red-500" : "hover:bg-orange-50"}
-      `}
-    >
-      {label}
-    </div>
-  );
-}
 
 function Stat({ label, value }) {
   return (
@@ -119,11 +103,14 @@ function Stat({ label, value }) {
 
 function Section({ title, children }) {
   return (
-    <div className="mt-10 sm:mt-12">
-      <h2 className="font-semibold text-lg mb-4">
+    <div className="mb-12">
+
+      <h2 className="font-semibold text-lg mb-5">
         {title}
       </h2>
+
       {children}
+
     </div>
   );
 }
@@ -131,7 +118,8 @@ function Section({ title, children }) {
 function PlanCard({ plan }) {
   return (
     <div className="
-      bg-orange-50 shadow-md shadow-orange-200/40
+      bg-orange-50
+      shadow-md shadow-orange-200/40
       p-6 rounded-xl
       flex flex-col md:flex-row
       gap-6 md:justify-between
@@ -155,7 +143,7 @@ function PlanCard({ plan }) {
         </p>
       </div>
 
-      <div className="text-left md:text-right">
+      <div className="md:text-right">
         <p className="text-sm text-gray-500">
           This month’s savings
         </p>
@@ -164,6 +152,7 @@ function PlanCard({ plan }) {
           ₹{plan.savings}
         </p>
       </div>
+
     </div>
   );
 }
@@ -171,7 +160,10 @@ function PlanCard({ plan }) {
 function OrderCard({ order }) {
   return (
     <div className="
-      bg-white shadow-md shadow-black/5 rounded-xl p-5
+      bg-white
+      shadow-md shadow-black/5
+      rounded-xl
+      p-5
       flex flex-col sm:flex-row gap-4
       sm:justify-between sm:items-center
       mb-4
@@ -201,6 +193,7 @@ function OrderCard({ order }) {
       <button className="bg-orange-500 text-white px-5 py-2 rounded-full whitespace-nowrap">
         Track Order
       </button>
+
     </div>
   );
 }
@@ -209,7 +202,7 @@ function FavoriteCard({ fav }) {
   return (
     <div className="bg-white shadow-md shadow-black/5 rounded-xl p-5">
 
-      <div className="h-32 w-full bg-gray-200 rounded-lg mb-3"></div>
+      <div className="h-32 bg-gray-200 rounded-lg mb-3"></div>
 
       <h3 className="font-semibold">
         {fav.name}
@@ -222,20 +215,45 @@ function FavoriteCard({ fav }) {
       <button className="mt-3 border px-4 py-2 rounded-full w-full hover:bg-gray-50">
         View Menu
       </button>
+
     </div>
   );
 }
 
-function ManageCard({ title }) {
+function ManageCard({ icon, title, subtitle }) {
   return (
-    <div className="bg-white shadow-md shadow-black/5 rounded-xl p-6 text-center">
-      <h3 className="font-semibold">
+    <div className="
+      bg-white
+      shadow-md shadow-black/5
+      rounded-2xl
+      p-8
+      text-center
+      hover:shadow-lg
+      transition
+      cursor-pointer
+    ">
+      
+      {/* Icon circle */}
+      <div className="
+        w-14 h-14
+        mx-auto mb-4
+        rounded-full
+        bg-orange-50
+        flex items-center justify-center
+        text-orange-500 text-xl
+      ">
+        <i className={`fa-solid ${icon}`}></i>
+      </div>
+
+      <h3 className="font-semibold text-lg">
         {title}
       </h3>
 
       <p className="text-sm text-gray-500 mt-1">
-        Manage settings
+        {subtitle}
       </p>
+
     </div>
   );
 }
+

@@ -23,7 +23,7 @@ export default function FoodDetail() {
 
       <div className="max-w-7xl mx-auto px-10 py-12">
 
-        <Link to="/cust" className="text-sm text-gray-600 mb-6 block">
+        <Link to="/cust" className="text-sm text-gray-600 hover:text-orange-400 mb-6 block">
           ← Back to search
         </Link>
 
