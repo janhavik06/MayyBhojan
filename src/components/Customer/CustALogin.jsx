@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useCart } from "../Cart/CartContext";
+import { useFavorites } from "../Customer/Dashboard/FavoriteContext";
+import { moods } from "../../data/constants";
 
 import { Link } from "react-router-dom";
 import { meals } from "../../data/CustMeals";
-const moods = ["All", "Comfort", "Spicy", "Homesick", "Healthy", "Festival"];
+// const moods = ["All", "Comfort", "Spicy", "Homesick", "Healthy", "Festival"];
 
 // const meals = Array.from({ length: 20 }, (_, i) => ({
 //   id: i + 1,
@@ -34,6 +36,7 @@ export default function CustALogin() {
   const { addToCart } = useCart();
   const [vegOnly, setVegOnly] = useState(false);
   const [toast, setToast] = useState(false);
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   const loadMore = () => setVisible((v) => v + 8);
   let filteredMeals = meals.filter((meal) => {
@@ -208,15 +211,35 @@ export default function CustALogin() {
       {/* GRID */}
       <div className="max-w-[1400px] mx-auto px-10 mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {filteredMeals.slice(0, visible).map((meal) => (
-          <Link key={meal.id} className="block">
-            <div className="bg-white rounded-2xl border border-[#E5DAD3] shadow-sm hover:shadow-md hover:-translate-y-1 transition cursor-pointer flex flex-col h-full">
+          <Link to={`/food/${meal.id}`} key={meal.id} className="block">
+          <div className="bg-white rounded-2xl border border-[#E5DAD3] shadow-sm hover:shadow-md hover:-translate-y-1 transition cursor-pointer flex flex-col h-full">
               {/* Fixed image box */}
-              <div className="h-60 w-full overflow-hidden rounded-t-2xl">
-                <img
-                  src={meal.image}
-                  alt={meal.name}
-                  className="w-full h-full object-cover"
-                />
+              <div className="relative">
+                {/* Heart button */}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleFavorite(meal);
+                  }}
+                  className="absolute top-3 right-3 text-xl"
+                >
+                  <i
+                    className={`fa-heart ${
+                      isFavorite(meal.id)
+                        ? "fa-solid text-red-500"
+                        : "fa-regular text-gray-400"
+                    }`}
+                  ></i>
+                </button>
+
+                <div className="h-60 w-full overflow-hidden rounded-t-2xl">
+                  <img
+                    src={meal.image}
+                    alt={meal.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
 
               {/* Content */}
@@ -247,19 +270,18 @@ export default function CustALogin() {
 
                 {/* Push button to bottom */}
                 <button
-  onClick={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addToCart(meal);
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addToCart(meal);
 
-    setToast(true);
-    setTimeout(() => setToast(false), 2000);
-  }}
-  className="w-full mt-7 bg-orange-500 text-white py-3 rounded-xl font-semibold hover:opacity-95"
->
-  + Add to Cart
-</button>
-
+                    setToast(true);
+                    setTimeout(() => setToast(false), 2000);
+                  }}
+                  className="w-full mt-7 bg-orange-500 text-white py-3 rounded-xl font-semibold hover:opacity-95"
+                >
+                  + Add to Cart
+                </button>
               </div>
             </div>
           </Link>
@@ -278,11 +300,10 @@ export default function CustALogin() {
         </div>
       )}
       {toast && (
-  <div className="fixed bottom-6 right-6 bg-black text-white px-6 py-3 rounded-xl shadow-lg animate-fade">
-    ✅ Item added to cart
-  </div>
-)}
-
+        <div className="fixed bottom-6 right-6 bg-black text-white px-6 py-3 rounded-xl shadow-lg animate-fade">
+          ✅ Item added to cart
+        </div>
+      )}
     </div>
   );
 }

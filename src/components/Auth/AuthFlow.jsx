@@ -57,13 +57,29 @@ export default function AuthFlow({ mode="login", setLoggedIn }) {
       loggedIn: true,
       time: new Date().toISOString(),
     };
-
+  
     localStorage.setItem("maybhojan_user", JSON.stringify(userData));
-
+  
     if (setLoggedIn) setLoggedIn(true);
-
-    navigate("/custalogin");
+  
+    // ✅ Role-based routing
+    if (role === "customer") {
+      navigate("/custalogin");
+    }
+  
+    if (role === "cook") {
+      navigate("/cook"); // cook onboarding dashboard
+    }
+  
+    if (role === "delivery") {
+      navigate("/delivery");
+    }
+  
+    if (role === "admin") {
+      navigate("/admin");
+    }
   };
+  
 
   return (
     <div className="min-h-screen flex">
