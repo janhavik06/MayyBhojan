@@ -15,7 +15,7 @@ export default function Layout({ loggedIn }) {
       />
 
       <Outlet />
-      <Footer />
-    </>
+      <Footer loggedIn={loggedIn} />
+      </>
   );
 }
