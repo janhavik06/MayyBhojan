@@ -79,7 +79,7 @@ export default function CustALogin() {
           {/* Search */}
           <div className="flex gap-4">
             <div className="flex-1 bg-white rounded-2xl shadow-sm border border-[#E5DAD3] px-6 py-4 flex items-center gap-3">
-              🔍
+              {/* 🔍 */}
               <input
                 placeholder="Search for 'Dadi's Daal' or 'Spicy Chicken'..."
                 value={query}
@@ -87,7 +87,6 @@ export default function CustALogin() {
                 className="w-full outline-none bg-transparent text-gray-700"
               />
             </div>
-
             <button className="bg-orange-500 text-white px-8 py-4 rounded-2xl font-semibold shadow-sm hover:opacity-95">
               Find Food
             </button>
@@ -212,7 +211,7 @@ export default function CustALogin() {
       <div className="max-w-[1400px] mx-auto px-10 mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {filteredMeals.slice(0, visible).map((meal) => (
           <Link to={`/food/${meal.id}`} key={meal.id} className="block">
-          <div className="bg-white rounded-2xl border border-[#E5DAD3] shadow-sm hover:shadow-md hover:-translate-y-1 transition cursor-pointer flex flex-col h-full">
+            <div className="bg-white rounded-2xl border border-[#E5DAD3] shadow-sm hover:shadow-md hover:-translate-y-1 transition cursor-pointer flex flex-col h-full">
               {/* Fixed image box */}
               <div className="relative">
                 {/* Heart button */}
