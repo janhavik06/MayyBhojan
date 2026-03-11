@@ -4,15 +4,18 @@ import StartAuditCTA from "./StartAuditCTA";
 
 export default function CookALogin() {
   const [steps, setSteps] = useState(() => {
-    const saved = localStorage.getItem("cook_onboarding_steps");
-    return saved
-      ? JSON.parse(saved)
-      : {
-          identity: true,
-          documents: false,
-          audit: false,
-          banking: false,
-        };
+    try {
+      const saved = JSON.parse(localStorage.getItem("cook_onboarding_steps"));
+
+      if (saved) return saved;
+    } catch {}
+
+    return {
+      identity: false,
+      documents: false,
+      audit: false,
+      banking: false,
+    };
   });
   useEffect(() => {
     localStorage.setItem("cook_onboarding_steps", JSON.stringify(steps));
@@ -64,15 +67,24 @@ export default function CookALogin() {
             title="Identity Verification"
             desc="Confirm your account details securely."
             done={steps.identity}
-            button="Verified"
+            active={!steps.identity}
+            button="Verify Identity"
+            onClick={() => {
+              navigate("/cook/identity");
+              completeStep("identity");
+            }}
           />
 
           <ChecklistCard
             title="Document Upload"
             desc="Upload Aadhaar / Voter ID"
-            active={!steps.documents}
+            done={steps.documents}
+            active={steps.identity && !steps.documents}
             button="Upload Documents"
-            onClick={() => navigate("/cook/verification")}
+            onClick={() => {
+              navigate("/cook/verification");
+              completeStep("documents");
+            }}
           />
 
           <div className="mt-4">
@@ -94,9 +106,13 @@ export default function CookALogin() {
           <ChecklistCard
             title="Banking & Payouts"
             desc="Add bank details for payments"
-            active={!steps.banking}
+            done={steps.banking}
+            active={steps.audit && !steps.banking}
             button="Setup Bank"
-            onClick={() => navigate("/cook/bank")}
+            onClick={() => {
+              navigate("/cook/bank");
+              completeStep("banking");
+            }}
           />
         </section>
 
@@ -112,20 +128,29 @@ export default function CookALogin() {
 function ProgressBar({ completed }) {
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 mt-8">
-      <h3 className="text-center text-sm font-semibold mb-4">
+      <h3 className="text-center text-sm font-semibold mb-6">
         ONBOARDING PROGRESS
       </h3>
 
-      <div className="flex justify-between items-center text-xs">
+      <div className="relative flex justify-between items-center">
+        {/* progress line */}
+        <div className="absolute top-4 left-0 w-full h-1 bg-gray-200"></div>
+
+        <div
+          className="absolute top-4 left-0 h-1 bg-orange-500 transition-all"
+          style={{ width: `${(completed / 4) * 100}%` }}
+        ></div>
+
         {[1, 2, 3, 4].map((step) => (
           <div
             key={step}
-            className={`w-8 h-8 flex items-center justify-center rounded-full
-                ${
-                  step <= completed
-                    ? "bg-orange-500 text-white"
-                    : "bg-gray-200 text-gray-500"
-                }`}
+            className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold z-10
+              ${
+                step <= completed
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-200 text-gray-500"
+              }
+            `}
           >
             {step}
           </div>

@@ -14,12 +14,13 @@ export default function CookVerification() {
   const [success, setSuccess] = useState(false);
 
   function handleUpload(type, file) {
-    setFiles(prev => ({ ...prev, [type]: file }));
+    setFiles((prev) => ({ ...prev, [type]: file }));
   }
 
   // ✅ mark onboarding step complete
   function markDocumentsComplete() {
-    const saved = JSON.parse(localStorage.getItem("cook_onboarding_steps")) || {};
+    const saved =
+      JSON.parse(localStorage.getItem("cook_onboarding_steps")) || {};
 
     const updated = {
       ...saved,
@@ -43,18 +44,15 @@ export default function CookVerification() {
 
     // redirect after short delay
     setTimeout(() => {
-      navigate("/cook");
+      navigate("/cook/login");
     }, 1500);
   }
 
   return (
     <div className="min-h-screen bg-[#F6F2EF]">
-
       <main className="max-w-7xl mx-auto px-8 py-10 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-10">
-
         {/* LEFT SIDE */}
         <div>
-
           <p className="text-xs text-orange-500 font-semibold tracking-wider">
             STEP 2 OF 3: VERIFICATION
           </p>
@@ -64,7 +62,8 @@ export default function CookVerification() {
           </h1>
 
           <p className="text-gray-600 mt-2">
-            We take safety seriously. Please upload clear documents to help us verify your kitchen.
+            We take safety seriously. Please upload clear documents to help us
+            verify your kitchen.
           </p>
 
           {/* progress */}
@@ -74,7 +73,6 @@ export default function CookVerification() {
 
           {/* uploads */}
           <div className="grid md:grid-cols-2 gap-6 mt-8">
-
             <UploadBox
               title="Government ID Proof"
               required
@@ -88,7 +86,6 @@ export default function CookVerification() {
               file={files.fssai}
               onUpload={(f) => handleUpload("fssai", f)}
             />
-
           </div>
 
           <div className="mt-6">
@@ -101,9 +98,7 @@ export default function CookVerification() {
           </div>
 
           {/* error */}
-          {error && (
-            <p className="text-red-500 mt-4 text-sm">{error}</p>
-          )}
+          {error && <p className="text-red-500 mt-4 text-sm">{error}</p>}
 
           {/* success */}
           {success && (
@@ -114,10 +109,7 @@ export default function CookVerification() {
 
           {/* buttons */}
           <div className="flex justify-between mt-8">
-
-            <button className="text-gray-600">
-              Save as Draft
-            </button>
+            <button className="text-gray-600">Save as Draft</button>
 
             <button
               onClick={handleSubmit}
@@ -125,19 +117,16 @@ export default function CookVerification() {
             >
               Submit for Review →
             </button>
-
           </div>
-
         </div>
 
         {/* RIGHT PANEL */}
         <aside className="bg-white border shadow-sm rounded-2xl p-6 h-fit">
-
           <h3 className="font-semibold">Quick Help</h3>
 
           <p className="text-sm text-gray-600 mt-3">
-            Verification helps us maintain safety standards
-            and build customer trust in your kitchen.
+            Verification helps us maintain safety standards and build customer
+            trust in your kitchen.
           </p>
 
           <div className="mt-6 text-sm">
@@ -154,9 +143,7 @@ export default function CookVerification() {
           <button className="mt-6 text-orange-500 font-semibold">
             Chat with Support
           </button>
-
         </aside>
-
       </main>
     </div>
   );
@@ -169,13 +156,12 @@ export default function CookVerification() {
 function UploadBox({ title, required, file, onUpload }) {
   return (
     <div className="border-2 border-dashed border-orange-200 rounded-2xl p-8 text-center bg-white">
-
-      <p className="font-semibold">
-        {title} {required && <span className="text-xs text-red-500">Required</span>}
+      <p className="font-medium">
+        {title}
+        {required && <span className="text-red-500 ml-1">*</span>}
       </p>
 
       <label className="block mt-4 cursor-pointer">
-
         <input
           type="file"
           className="hidden"
@@ -186,18 +172,12 @@ function UploadBox({ title, required, file, onUpload }) {
           {file ? (
             <p className="text-green-600">{file.name}</p>
           ) : (
-            <p className="text-gray-600">
-              Click to upload or drag & drop
-            </p>
+            <p className="text-gray-600">Click to upload or drag & drop</p>
           )}
         </div>
-
       </label>
 
-      <p className="text-xs text-gray-400 mt-2">
-        PDF / JPG / PNG (Max 5MB)
-      </p>
-
+      <p className="text-xs text-gray-400 mt-2">PDF / JPG / PNG (Max 5MB)</p>
     </div>
   );
 }
