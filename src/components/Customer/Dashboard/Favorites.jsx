@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useCart } from "../../Cart/CartContext";
 import { useFavorites } from "../../Customer/Dashboard/FavoriteContext";
+import { FiSearch } from "react-icons/fi";
+import { FiHeart } from "react-icons/fi";
+import { FiShoppingCart } from "react-icons/fi";
+import { FiTrash2 } from "react-icons/fi";
 
 export default function Favorites() {
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState(null);
 
-  // ✅ pull favorites from context
   const { favorites, removeFavorite } = useFavorites();
   const { addToCart } = useCart();
 
@@ -25,33 +28,37 @@ export default function Favorites() {
     showToast("Added to cart");
   }
 
-  // ✅ safe filter
   const filtered = (favorites || []).filter((m) =>
-    m.name.toLowerCase().includes(search.toLowerCase())
+    m.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
     <div className="min-h-screen bg-[#F6F2EF]">
-
       <main className="max-w-7xl mx-auto px-6 py-10">
-
         {/* HEADER */}
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold">Your Favorites</h1>
-          <p className="text-gray-500 mt-1">
-            Saved meals you love — reorder quickly.
+        <header className="mb-10">
+          <h1 className="text-3xl font-bold text-gray-800">Your Favorites</h1>
+          <p className="text-gray-500 mt-2">
+            Meals you loved — reorder anytime.
           </p>
         </header>
 
-        {/* SEARCH */}
-        <input
-          placeholder="Search your favorites"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full mb-8 border rounded-full px-5 py-3"
-        />
+        {/* SEARCH BAR */}
+        <div className="relative mb-10">
+          <input
+            placeholder="Search your favorite meals..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-white rounded-full px-6 py-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+          />
 
-        {/* EMPTY STATE */}
+          <FiSearch
+            className="absolute right-5 top-3.5 text-gray-400"
+            size={18}
+          />
+        </div>
+
+        {/* CONTENT */}
         {filtered.length === 0 ? (
           <EmptyState />
         ) : (
@@ -66,65 +73,66 @@ export default function Favorites() {
             ))}
           </div>
         )}
-
       </main>
 
       {/* TOAST */}
       {toast && (
-        <div className="fixed bottom-6 right-6 bg-black text-white px-6 py-3 rounded-xl shadow-lg">
+        <div className="fixed bottom-6 right-6 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-lg animate-fadeIn">
           {toast}
         </div>
       )}
     </div>
   );
 }
-
 ////////////////////////////
 // COMPONENTS
 ////////////////////////////
-
 function MealCard({ meal, onRemove, onAdd }) {
   return (
-    <div className="bg-white shadow-md rounded-xl p-5">
+    <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-800">{meal.name}</h3>
 
-      <h3 className="font-semibold text-lg">
-        {meal.name}
-      </h3>
+        <p className="text-gray-500 text-sm mt-1">
+          {meal.chef} • ⭐ {meal.rating}
+        </p>
 
-      <p className="text-gray-500 text-sm">
-        {meal.chef} • ⭐ {meal.rating}
-      </p>
+        <p className="text-orange-500 font-semibold text-lg mt-2">
+          ₹{meal.price}
+        </p>
+      </div>
 
-      <p className="text-orange-500 font-bold mt-1">
-        ₹{meal.price}
-      </p>
-
-      <div className="flex gap-3 mt-4">
-
+      <div className="flex gap-3 mt-5">
         <button
           onClick={onAdd}
-          className="bg-orange-500 text-white px-4 py-2 rounded-full"
+          className="flex items-center justify-center gap-2 flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg font-medium transition"
         >
-          Add to cart
+          <FiShoppingCart size={16} />
+          Add to Cart
         </button>
 
         <button
           onClick={onRemove}
-          className="border px-4 py-2 rounded-full text-sm"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition"
         >
+          <FiTrash2 size={15} />
           Remove
         </button>
-
       </div>
     </div>
   );
 }
-
 function EmptyState() {
   return (
-    <div className="bg-white rounded-xl p-10 text-center shadow-md">
-      <p className="text-gray-500">
-        No favorites yet — tap ❤️ on meals to save them.
+    <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
+      <div className="flex justify-center mb-4 text-red-400">
+        <FiHeart size={40} />
+      </div>
+
+      <p className="text-gray-600">You haven't saved any meals yet.</p>
+
+      <p className="text-sm text-gray-400 mt-1">
+        Tap the heart icon on meals to add them here.
       </p>
     </div>
   );

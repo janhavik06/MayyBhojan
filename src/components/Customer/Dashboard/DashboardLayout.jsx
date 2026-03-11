@@ -7,7 +7,7 @@ export default function DashboardLayout() {
       <aside className="hidden md:flex w-64 bg-white shadow-md shadow-black/5 fixed left-0 top-16 bottom-0 z-40 flex-col">
         {/* MENU */}
         <div className="p-6 space-y-6 flex-1 overflow-y-auto scrollbar-hide">
-          <SidebarItem label="My Orders" to="/orders" />
+          <SidebarItem label="My Orders" to="/orders" end />
           <SidebarItem label="Favorites" to="/favorites" />
           <SidebarItem label="Settings" to="/settings" />
         </div>
@@ -21,21 +21,22 @@ export default function DashboardLayout() {
       </aside>
 
       {/* PAGE CONTENT */}
-      <main className="flex-1 md:ml-64 p-4 sm:p-6 md:p-10 overflow-y-auto">
+      <main className="flex-1 md:ml-64 overflow-y-auto">
         <Outlet />
       </main>
     </div>
   );
 }
 
-function SidebarItem({ label, to, danger }) {
+function SidebarItem({ label, to, danger, end }) {
   return (
     <NavLink
       to={to}
+      end={end}
       className={({ isActive }) =>
         `block p-3 rounded-lg transition
-         ${isActive ? "bg-orange-100 text-orange-600" : ""}
-         ${danger ? "text-red-500" : "hover:bg-orange-50"}`
+        ${isActive ? "bg-orange-100 text-orange-600 font-medium" : "text-gray-700"}
+        ${danger ? "text-red-500" : "hover:bg-orange-50"}`
       }
     >
       {label}

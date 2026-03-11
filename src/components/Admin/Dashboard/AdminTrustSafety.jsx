@@ -26,10 +26,8 @@ export default function AdminTrustSafety() {
 
   return (
     <div className="h-screen flex bg-[#F6F2EF] gap-5">
-
       {/* COLUMN A */}
       <div className="w-[300px] bg-white rounded-2xl shadow-sm flex flex-col">
-
         <div className="p-4">
           <input
             placeholder="Search cases..."
@@ -47,15 +45,12 @@ export default function AdminTrustSafety() {
             />
           ))}
         </div>
-
       </div>
 
       {/* COLUMN B */}
       <div className="flex-1 bg-white rounded-2xl shadow-sm flex flex-col overflow-hidden">
-
         {/* HEADER */}
         <div className="p-6 flex justify-between items-center bg-white/70 backdrop-blur">
-
           <div>
             <h2 className="font-bold text-xl">{cases[selectedCase].title}</h2>
             <div className="flex gap-3 mt-1">
@@ -70,12 +65,10 @@ export default function AdminTrustSafety() {
             <ActionBtn text="Suspend" red />
             <ActionBtn text="Close Case" />
           </div>
-
         </div>
 
         {/* CONTENT */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-
           <Card title="Evidence">
             <div className="grid grid-cols-3 gap-4">
               <EvidenceTile />
@@ -89,19 +82,16 @@ export default function AdminTrustSafety() {
               Kitchen: Savita’s Kitchen • Previous flags: 2 • Verified: No
             </p>
           </Card>
-
         </div>
       </div>
 
       {/* COLUMN C */}
       <div className="w-[380px] bg-white rounded-2xl shadow-sm flex flex-col">
-
         <div className="p-5">
           <h3 className="font-bold">Case Context</h3>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 pb-6 space-y-6">
-
           <Panel title="Assignment">
             Assigned to: <b>Raj Sharma</b>
           </Panel>
@@ -116,10 +106,8 @@ export default function AdminTrustSafety() {
             <Timeline text="Anita opened case — 10:45 AM" />
             <Timeline text="Raj annotated evidence — 10:50 AM" />
           </Panel>
-
         </div>
       </div>
-
     </div>
   );
 }
@@ -131,30 +119,42 @@ function CaseRow({ c, active, onClick }) {
     <div
       onClick={onClick}
       className={`p-4 rounded-xl cursor-pointer transition ${
-        active
-          ? "bg-orange-50 shadow-inner"
-          : "hover:bg-gray-50"
+        active ? "bg-orange-50 shadow-inner" : "hover:bg-gray-50"
       }`}
     >
       <p className="font-semibold text-sm">{c.title}</p>
-      <div className="flex justify-between text-xs text-gray-500 mt-1">
+      <div className="flex justify-between text-xs text-gray-500 mt-3">
         <span>{c.priority}</span>
         <span>{c.time}</span>
       </div>
     </div>
   );
 }
-
-function Chip({ label, color }) {
+function Chip({ label, priority, color }) {
   const styles = {
     red: "bg-red-100 text-red-600",
     orange: "bg-orange-100 text-orange-600",
+    green: "bg-green-100 text-green-600",
   };
 
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles[color]}`}>
-      {label}
-    </span>
+    <div className="flex items-center gap-2">
+      {priority && (
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-semibold ${styles[color]}`}
+        >
+          {priority}
+        </span>
+      )}
+
+      {label && (
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600  ${styles[color]}`}
+        >
+          {label}
+        </span>
+      )}
+    </div>
   );
 }
 
