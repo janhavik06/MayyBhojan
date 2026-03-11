@@ -7,8 +7,14 @@ export default function Navbar({ language, setLanguage, loggedIn }) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const { count } = useCart();
+  const landingPages = ["/", "/about", "/how", "/explore"];
+  const authPages = ["/login", "/signup"];
 
+  const isLandingPage = landingPages.includes(location.pathname);
+  const isAuthPage = authPages.includes(location.pathname);
   const showCustomerNav = loggedIn && location.pathname !== "/";
+  const landingNavbarPages = ["/", "/about", "/how", "/explore"];
+  // const showLandingNavbar = landingNavbarPages.includes(location.pathname);
   const navigate = useNavigate();
 
   const user = JSON.parse(localStorage.getItem("maybhojan_user"));
@@ -78,7 +84,7 @@ export default function Navbar({ language, setLanguage, loggedIn }) {
             🌐 {language === "en" ? "EN/हिं" : "हिं/EN"}
           </button>
 
-          {!showCustomerNav ? (
+          {isAuthPage ? null : isLandingPage ? (
             <>
               <Link to="/login" className="px-5 py-2 font-semibold">
                 Login
