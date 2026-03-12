@@ -74,7 +74,7 @@ export default function App() {
           </Route>
 
           <Route element={<CookLayout />}>
-            <Route path="/cook" element={<Navigate to="/cookdashboard" />} />
+            <Route path="/cook" element={<CookDashboard />} />
             <Route
               path="/cook/identity"
               element={<CookIdentityVerification />}
