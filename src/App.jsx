@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
-
+import { Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import About from "./components/Navbar/About";
 import How from "./components/Navbar/How";
@@ -34,6 +34,7 @@ import AdminLayout from "./components/Admin/AdminLayout";
 import AdminDashboard from "./components/Admin/Dashboard/AdminDashboard";
 import AdminApprovals from "./components/Admin/Dashboard/AdminApprovals";
 import AdminTrustSafety from "./components/Admin/Dashboard/AdminTrustSafety";
+import CookIdentityVerification from "./components/Cook/CookIdentityVerification";
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(() => {
     const user = JSON.parse(localStorage.getItem("maybhojan_user"));
@@ -73,6 +74,11 @@ export default function App() {
           </Route>
 
           <Route element={<CookLayout />}>
+            <Route path="/cook" element={<Navigate to="/cookdashboard" />} />
+            <Route
+              path="/cook/identity"
+              element={<CookIdentityVerification />}
+            />
             <Route path="cookdashboard" element={<CookDashboard />} />
             <Route path="/cook/orders" element={<CookDashboard />} />
 
@@ -81,7 +87,7 @@ export default function App() {
             <Route path="/cook/kitchen" element={<CookKitchenInfo />} />
           </Route>
 
-          <Route path="/cook" element={<CookALogin />} />
+          <Route path="/cook/login" element={<CookALogin />} />
           {/* <Route path="/delivery" element={<DeliveryDashboard />} />
 <Route path="/admin" element={<AdminDashboard />} /> */}
           <Route path="/cook/verification" element={<CookVerification />} />
@@ -97,7 +103,6 @@ export default function App() {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/approvals" element={<AdminApprovals />} />
             <Route path="/admin/safety" element={<AdminTrustSafety />} />
-
           </Route>
           <Route path="/about" element={<About />} />
           <Route path="/how" element={<How />} />

@@ -1,18 +1,27 @@
 import { Link, NavLink } from "react-router-dom";
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "../Cart/CartContext";
 
 export default function Navbar({ language, setLanguage, loggedIn }) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const { count } = useCart();
+  const landingPages = ["/", "/about", "/how", "/explore"];
+  const authPages = ["/login", "/signup"];
 
+  const isLandingPage = landingPages.includes(location.pathname);
+  const isAuthPage = authPages.includes(location.pathname);
   const showCustomerNav = loggedIn && location.pathname !== "/";
+  const landingNavbarPages = ["/", "/about", "/how", "/explore"];
+  // const showLandingNavbar = landingNavbarPages.includes(location.pathname);
+  const navigate = useNavigate();
 
+  const user = JSON.parse(localStorage.getItem("maybhojan_user"));
+  const role = user?.role;
   return (
-<header className="w-full bg-white shadow-md shadow-black/5 sticky top-0 z-100">
-<div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+    <header className="w-full bg-white shadow-md shadow-black/5 sticky top-0 z-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
         {/* LEFT */}
         <nav className="hidden md:flex gap-8 font-medium">
           {!showCustomerNav ? (
@@ -75,7 +84,7 @@ export default function Navbar({ language, setLanguage, loggedIn }) {
             🌐 {language === "en" ? "EN/हिं" : "हिं/EN"}
           </button>
 
-          {!showCustomerNav ? (
+          {isAuthPage ? null : isLandingPage ? (
             <>
               <Link to="/login" className="px-5 py-2 font-semibold">
                 Login
@@ -89,21 +98,24 @@ export default function Navbar({ language, setLanguage, loggedIn }) {
               </Link>
             </>
           ) : (
-            <>
-              <Link to="/cart" className="relative text-xl cursor-pointer">
-                <i className="fa-solid fa-basket-shopping"></i>
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  {count}
-                </span>
-              </Link>
+            role !== "admin" &&
+            role !== "delivery" && (
+              <>
+                <Link to="/cart" className="relative text-xl cursor-pointer">
+                  <i className="fa-solid fa-basket-shopping"></i>
 
-              <Link to="/profile">
-                <img
-                  src="https://i.pravatar.cc/40"
-                  className="w-10 h-10 rounded-full border cursor-pointer"
-                />
-              </Link>
-            </>
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                    {count}
+                  </span>
+                </Link>
+
+                <div onClick={goToProfile} className="cursor-pointer">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold shadow-md hover:shadow-lg transition">
+                    <i className="fa-solid fa-user"></i>
+                  </div>
+                </div>
+              </>
+            )
           )}
         </div>
 
@@ -176,4 +188,15 @@ export default function Navbar({ language, setLanguage, loggedIn }) {
       )}
     </header>
   );
+}
+function goToProfile() {
+  if (role === "cook") {
+    navigate("/cook");
+  } else if (role === "customer") {
+    navigate("/profile");
+  } else if (role === "delivery") {
+    navigate("/delivery");
+  } else if (role === "admin") {
+    navigate("/admin");
+  }
 }
