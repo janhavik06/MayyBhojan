@@ -111,19 +111,18 @@ export default function Navbar({ language, setLanguage, loggedIn }) {
               </Link>
             </>
           ) : (
-            role !== "admin" &&
-            role !== "delivery" && (
+            role === "customer" && (
               <>
-                {role !== "cook" && (
-                  <Link to="/cart" className="relative text-xl cursor-pointer">
-                    <i className="fa-solid fa-basket-shopping"></i>
+                {/* CART ICON */}
+                <Link to="/cart" className="relative text-xl cursor-pointer">
+                  <i className="fa-solid fa-basket-shopping"></i>
 
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                      {count}
-                    </span>
-                  </Link>
-                )}
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                    {count}
+                  </span>
+                </Link>
 
+                {/* PROFILE ICON */}
                 <div onClick={goToProfile} className="cursor-pointer">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold shadow-md hover:shadow-lg transition">
                     <i className="fa-solid fa-user"></i>

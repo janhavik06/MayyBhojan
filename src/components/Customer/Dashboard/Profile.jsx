@@ -1,7 +1,10 @@
 import { profileData as data } from "../../../data/profileData";
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Profile() {
+  const navigate = useNavigate();
+
   const [activeSection, setActiveSection] = useState(null);
   return (
     <div className="min-h-screen bg-[#F6F2EF]">
@@ -145,6 +148,8 @@ function PlanCard({ plan }) {
 }
 
 function OrderCard({ order }) {
+  const navigate = useNavigate();
+
   return (
     <div
       className="
@@ -169,7 +174,10 @@ function OrderCard({ order }) {
         </div>
       </div>
 
-      <button className="bg-orange-500 text-white px-5 py-2 rounded-full whitespace-nowrap">
+      <button
+        onClick={() => navigate("/confirm")}
+        className="bg-orange-500 text-white px-5 py-2 rounded-full whitespace-nowrap"
+      >
         Track Order
       </button>
     </div>
