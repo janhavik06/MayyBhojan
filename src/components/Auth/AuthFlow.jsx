@@ -99,6 +99,9 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
       return;
     }
 
+    /* store logged in user */
+    localStorage.setItem("maybhojan_user", JSON.stringify(user));
+
     if (setLoggedIn) setLoggedIn(true);
 
     if (user.role === "customer") navigate("/custalogin");
