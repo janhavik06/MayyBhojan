@@ -319,7 +319,11 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
       return;
     }
 
-    if (email === storedUser.email && password === storedUser.password) {
+    if (
+      email === storedUser.email &&
+      password === storedUser.password &&
+      role === storedUser.role
+    ) {
       if (setLoggedIn) setLoggedIn(true);
 
       if (storedUser.role === "customer") navigate("/custalogin");
@@ -346,25 +350,24 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
           </h2>
 
           {/* ROLE SELECTOR */}
-          {mode === "signup" && (
-            <div className="grid grid-cols-2 gap-3 mt-8">
-              {roles.map((r) => (
-                <button
-                  key={r.id}
-                  onClick={() => setRole(r.id)}
-                  className={`p-4 rounded-xl border text-left
-                    ${
-                      role === r.id
-                        ? "bg-orange-100 border-orange-400"
-                        : "bg-gray-50 hover:bg-gray-100"
-                    }`}
-                >
-                  <p className="font-semibold">{r.label}</p>
-                  <p className="text-xs text-gray-500">{r.desc}</p>
-                </button>
-              ))}
-            </div>
-          )}
+          {/* ROLE SELECTOR */}
+          <div className="grid grid-cols-2 gap-3 mt-8">
+            {roles.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => setRole(r.id)}
+                className={`p-4 rounded-xl border text-left
+      ${
+        role === r.id
+          ? "bg-orange-100 border-orange-400"
+          : "bg-gray-50 hover:bg-gray-100"
+      }`}
+              >
+                <p className="font-semibold">{r.label}</p>
+                <p className="text-xs text-gray-500">{r.desc}</p>
+              </button>
+            ))}
+          </div>
 
           {/* PHONE (Signup only) */}
           {mode === "signup" && (
