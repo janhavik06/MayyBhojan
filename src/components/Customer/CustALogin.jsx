@@ -5,26 +5,14 @@ import { moods } from "../../data/constants";
 
 import { Link } from "react-router-dom";
 import { meals } from "../../data/CustMeals";
-// const moods = ["All", "Comfort", "Spicy", "Homesick", "Healthy", "Festival"];
-
-// const meals = Array.from({ length: 20 }, (_, i) => ({
-//   id: i + 1,
-//   name: [
-//     "Homemade Paneer Butter Masala",
-//     "Spicy Kerala Fish Curry",
-//     "Gujarati Thali Special",
-//     "Homestyle Chicken Biryani",
-//     "Ragi Mudde & Dal",
-//     "Stuffed Paratha Platter",
-//     "Bengali Mustard Fish",
-//     "Rajma Chawal Bowl",
-//   ][i % 8],
-//   chef: ["Aunty's Spices", "Meena Kitchen", "Radha's Rasoi", "Dadi's House"][i % 4],
-//   price: 150 + i * 10,
-//   time: 20 + (i % 4) * 5,
-//   rating: (4.6 + (i % 4) * 0.1).toFixed(1),
-//   veg: i % 2 === 0,
-// }));
+import { FiSearch } from "react-icons/fi";
+import { FaLeaf } from "react-icons/fa";
+import { IoTimeOutline } from "react-icons/io5";
+import { MdCurrencyRupee } from "react-icons/md";
+import { FaHeart } from "react-icons/fa";
+import { FaStar } from "react-icons/fa";
+import { BsCartPlus } from "react-icons/bs";
+import { HiCheckCircle } from "react-icons/hi";
 
 export default function CustALogin() {
   const [visible, setVisible] = useState(8);
@@ -79,7 +67,7 @@ export default function CustALogin() {
           {/* Search */}
           <div className="flex gap-4">
             <div className="flex-1 bg-white rounded-2xl shadow-sm border border-[#E5DAD3] px-6 py-4 flex items-center gap-3">
-              {/* 🔍 */}
+              <FiSearch className="text-gray-400 text-lg" />
               <input
                 placeholder="Search for 'Dadi's Daal' or 'Spicy Chicken'..."
                 value={query}
@@ -131,7 +119,10 @@ export default function CustALogin() {
               : "bg-white border-[#E5DAD3]"
           }`}
             >
-              🥗 Veg Only
+              <div className="flex items-center gap-2">
+                <FaLeaf className="text-green-600" />
+                Veg Only
+              </div>{" "}
             </button>
 
             {/* Fast delivery */}
@@ -144,7 +135,10 @@ export default function CustALogin() {
               : "bg-white border-[#E5DAD3]"
           }`}
             >
-              ⏱ Under 30 mins
+              <div className="flex items-center gap-2">
+                <IoTimeOutline />
+                Under 30 mins
+              </div>{" "}
             </button>
 
             {/* Budget */}
@@ -157,7 +151,10 @@ export default function CustALogin() {
               : "bg-white border-[#E5DAD3]"
           }`}
             >
-              ₹ Under ₹200
+              <div className="flex items-center gap-2">
+                <MdCurrencyRupee />
+                Under ₹200
+              </div>{" "}
             </button>
 
             {/* Clear filters */}
@@ -203,7 +200,10 @@ export default function CustALogin() {
         </div>
 
         <div className="text-sm bg-gray-100 px-4 py-2 rounded-full border border-gray-200">
-          ✔ All kitchens are 100% hygiene certified
+          <div className="flex items-center gap-2">
+            <HiCheckCircle className="text-green-500" />
+            All kitchens are 100% hygiene certified
+          </div>{" "}
         </div>
       </div>
 
@@ -211,7 +211,7 @@ export default function CustALogin() {
       <div className="max-w-[1400px] mx-auto px-10 mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {filteredMeals.slice(0, visible).map((meal) => (
           <Link to={`/food/${meal.id}`} key={meal.id} className="block">
-            <div className="bg-white rounded-2xl border border-[#E5DAD3] shadow-sm hover:shadow-md hover:-translate-y-1 transition cursor-pointer flex flex-col h-full">
+            <div className="bg-white rounded-2xl border border-[#E5DAD3] shadow-smhover:shadow-lg hover:-translate-y-1.5 transition cursor-pointer flex flex-col h-full">
               {/* Fixed image box */}
               <div className="relative">
                 {/* Heart button */}
@@ -223,13 +223,11 @@ export default function CustALogin() {
                   }}
                   className="absolute top-3 right-3 text-xl"
                 >
-                  <i
-                    className={`fa-heart ${
-                      isFavorite(meal.id)
-                        ? "fa-solid text-red-500"
-                        : "fa-regular text-gray-400"
+                  <FaHeart
+                    className={`text-lg transition ${
+                      isFavorite(meal.id) ? "text-red-500" : "text-gray-300"
                     }`}
-                  ></i>
+                  />
                 </button>
 
                 <div className="h-60 w-full overflow-hidden rounded-t-2xl">
@@ -262,9 +260,18 @@ export default function CustALogin() {
                 <p className="text-sm text-gray-500 mt-1">by {meal.chef}</p>
 
                 <div className="flex justify-between text-sm mt-4 text-gray-700">
-                  <span>⏱ {meal.time}</span>
-                  <span>⭐ {meal.rating}</span>
-                  <span>₹ {meal.price}</span>
+                  <span className="flex items-center gap-1">
+                    <IoTimeOutline />
+                    {meal.time}
+                  </span>{" "}
+                  <span className="flex items-center gap-1">
+                    <FaStar className="text-yellow-400" />
+                    {meal.rating}
+                  </span>{" "}
+                  <span className="flex items-center gap-1">
+                    <MdCurrencyRupee />
+                    {meal.price}
+                  </span>{" "}
                 </div>
 
                 {/* Push button to bottom */}
@@ -277,9 +284,12 @@ export default function CustALogin() {
                     setToast(true);
                     setTimeout(() => setToast(false), 2000);
                   }}
-                  className="w-full mt-7 bg-orange-500 text-white py-3 rounded-xl font-semibold hover:opacity-95"
+                  className="w-full mt-7 bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition flex items-center justify-center gap-2"
                 >
-                  + Add to Cart
+                  <div className="flex items-center justify-center gap-2">
+                    <BsCartPlus />
+                    Add to Cart
+                  </div>{" "}
                 </button>
               </div>
             </div>
@@ -299,8 +309,9 @@ export default function CustALogin() {
         </div>
       )}
       {toast && (
-        <div className="fixed bottom-6 right-6 bg-black text-white px-6 py-3 rounded-xl shadow-lg animate-fade">
-          ✅ Item added to cart
+        <div className="fixed bottom-6 right-6 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2">
+          <HiCheckCircle className="text-green-400 text-lg" />
+          Item added to cart
         </div>
       )}
     </div>

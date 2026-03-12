@@ -1,12 +1,13 @@
 import { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 export default function Settings() {
+  const navigate = useNavigate();
+
   const [profile, setProfile] = useState({
     name: "Rajesh Kumar",
     email: "rajesh.kumar@example.com",
     phone: "+91 98765 43210",
   });
-
   const [highContrast, setHighContrast] = useState(false);
   const [textSize, setTextSize] = useState("standard");
   const [language, setLanguage] = useState("en");
@@ -35,7 +36,11 @@ export default function Settings() {
   };
 
   const logout = () => {
-    alert("Logged out!");
+    // remove stored login data if any
+    localStorage.removeItem("user");
+
+    // redirect to login page
+    navigate("/login");
   };
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showAddressModal, setShowAddressModal] = useState(false);

@@ -3,20 +3,42 @@ import { useNavigate } from "react-router-dom";
 import StartAuditCTA from "./StartAuditCTA";
 
 export default function CookALogin() {
-  const [steps, setSteps] = useState(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem("cook_onboarding_steps"));
+  // const [steps, setSteps] = useState(() => {
+  //   try {
+  //     const saved = JSON.parse(localStorage.getItem("cook_onboarding_steps"));
 
-      if (saved) return saved;
-    } catch {}
+  //     if (saved) return saved;
+  //   } catch {}
 
-    return {
-      identity: false,
-      documents: false,
-      audit: false,
-      banking: false,
-    };
+  //   return {
+  //     identity: false,
+  //     documents: false,
+  //     audit: false,
+  //     banking: false,
+  //   };
+  // });
+
+  const [steps, setSteps] = useState({
+    identity: false,
+    documents: false,
+    audit: false,
+    banking: false,
   });
+
+  useEffect(() => {
+    const isOnboarded = localStorage.getItem("cook_onboarded");
+
+    if (!isOnboarded) {
+      const saved = localStorage.getItem("cook_onboarding_steps");
+
+      if (saved) {
+        setSteps(JSON.parse(saved));
+      }
+    } else {
+      navigate("/cook/dashboard");
+    }
+  }, []);
+
   useEffect(() => {
     localStorage.setItem("cook_onboarding_steps", JSON.stringify(steps));
   }, [steps]);
@@ -24,6 +46,15 @@ export default function CookALogin() {
   const navigate = useNavigate();
 
   const completed = Object.values(steps).filter(Boolean).length;
+
+  useEffect(() => {
+    const completed = Object.values(steps).every(Boolean);
+
+    if (completed) {
+      localStorage.setItem("cook_onboarded", "true");
+      navigate("/cook/dashboard");
+    }
+  }, [steps]);
 
   function completeStep(key) {
     setSteps((prev) => {
