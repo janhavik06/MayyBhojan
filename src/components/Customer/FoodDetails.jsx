@@ -1,35 +1,34 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
+import { useCart } from "../Cart/CartContext";
 import { meals } from "../../data/CustMeals";
-
+import { FiMinus, FiPlus, FiShoppingCart, FiArrowLeft } from "react-icons/fi";
 export default function FoodDetail() {
   const { id } = useParams();
-
+  const { addToCart } = useCart();
   // find meal by id
-  const food = meals.find(m => m.id === Number(id));
+  const food = meals.find((m) => m.id === Number(id));
 
   const [qty, setQty] = useState(1);
+  const [toast, setToast] = useState(false);
 
   if (!food) {
-    return (
-      <div className="p-10 text-center">
-        Food not found
-      </div>
-    );
+    return <div className="p-10 text-center">Food not found</div>;
   }
 
   return (
     <div className="min-h-screen bg-[#F4EFEA]">
-
       <div className="max-w-7xl mx-auto px-10 py-12">
-
-        <Link to="/cust" className="text-sm text-gray-600 hover:text-orange-400 mb-6 block">
-          ← Back to search
+        <Link
+          to="/cust"
+          className="flex items-center gap-2 text-sm text-gray-600 hover:text-orange-400 mb-6"
+        >
+          <FiArrowLeft />
+          Back to search
         </Link>
 
         {/* TOP SECTION */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-
           {/* IMAGE */}
           <img
             src={food.image}
@@ -39,14 +38,9 @@ export default function FoodDetail() {
 
           {/* INFO */}
           <div>
+            <h1 className="text-4xl font-bold leading-tight">{food.name}</h1>
 
-            <h1 className="text-4xl font-bold leading-tight">
-              {food.name}
-            </h1>
-
-            <p className="mt-4 text-gray-600">
-              {food.desc}
-            </p>
+            <p className="mt-4 text-gray-600">{food.desc}</p>
 
             <div className="mt-6 text-3xl font-bold text-orange-500">
               ₹{food.price}
@@ -54,7 +48,7 @@ export default function FoodDetail() {
 
             {/* Tags */}
             <div className="flex gap-3 mt-6 flex-wrap">
-              {food.dietary.map(t => (
+              {food.dietary.map((t) => (
                 <span
                   key={t}
                   className="px-3 py-1 bg-orange-50 border border-orange-200 rounded-full text-sm text-orange-600"
@@ -65,12 +59,10 @@ export default function FoodDetail() {
             </div>
 
             {/* Ingredients */}
-            <h3 className="mt-8 font-semibold text-lg">
-              What's Inside?
-            </h3>
+            <h3 className="mt-8 font-semibold text-lg">What's Inside?</h3>
 
             <div className="flex flex-wrap gap-3 mt-3">
-              {food.ingredients.map(i => (
+              {food.ingredients.map((i) => (
                 <span
                   key={i}
                   className="px-4 py-2 bg-white border border-[#E5DAD3] rounded-xl text-sm"
@@ -82,43 +74,51 @@ export default function FoodDetail() {
 
             {/* Quantity + Cart */}
             <div className="flex gap-4 mt-8 items-center">
-
               <div className="flex border border-[#E5DAD3] rounded-xl overflow-hidden">
                 <button
                   onClick={() => setQty(Math.max(1, qty - 1))}
                   className="px-4 py-2"
                 >
-                  −
+                  <FiMinus />
                 </button>
+
                 <div className="px-6 py-2">{qty}</div>
-                <button
-                  onClick={() => setQty(qty + 1)}
-                  className="px-4 py-2"
-                >
-                  +
+
+                <button onClick={() => setQty(qty + 1)} className="px-4 py-2">
+                  <FiPlus />
                 </button>
               </div>
 
-              <button className="flex-1 bg-orange-500 text-white py-3 rounded-xl font-semibold shadow-sm hover:opacity-95">
-                🧺 Add to Cart
-              </button>
+              <button
+                onClick={() => {
+                  addToCart({
+                    ...food,
+                    qty: qty,
+                  });
 
+                  setToast(true);
+                  setTimeout(() => setToast(false), 2000);
+                }}
+                className="flex items-center justify-center gap-2 flex-1 bg-orange-500 text-white py-3 rounded-xl font-semibold shadow-sm hover:opacity-95"
+              >
+                <FiShoppingCart />
+                Add to Cart
+              </button>
             </div>
 
             <button className="mt-4 w-full border border-[#E5DAD3] py-3 rounded-xl text-gray-700">
               Ask Kitchen a Question
             </button>
-
           </div>
         </div>
 
         {/* ABOUT */}
         <div className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8">
-
           <div className="bg-white border border-[#E5DAD3] rounded-2xl p-6 shadow-sm">
             <h3 className="font-bold text-lg">About the Kitchen</h3>
             <p className="text-gray-600 mt-2">
-              Prepared by {food.chef} using homemade recipes and hygiene-certified kitchens.
+              Prepared by {food.chef} using homemade recipes and
+              hygiene-certified kitchens.
             </p>
           </div>
 
@@ -128,17 +128,13 @@ export default function FoodDetail() {
               This kitchen passed hygiene certification.
             </p>
           </div>
-
         </div>
 
         {/* SIDES */}
-        <h3 className="mt-16 text-2xl font-bold">
-          Enjoy it With
-        </h3>
+        <h3 className="mt-16 text-2xl font-bold">Enjoy it With</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-6">
-
-          {food.sides.map(side => (
+          {food.sides.map((side) => (
             <div
               key={side.name}
               className="bg-white border border-[#E5DAD3] rounded-2xl shadow-sm p-5"
@@ -151,10 +147,13 @@ export default function FoodDetail() {
               </button>
             </div>
           ))}
-
         </div>
-
       </div>
+      {toast && (
+        <div className="fixed bottom-6 right-6 bg-black text-white px-6 py-3 rounded-xl shadow-lg">
+          Item added to cart
+        </div>
+      )}
     </div>
   );
 }
