@@ -179,7 +179,11 @@ function OrderCard({ order }) {
 function FavoriteCard({ fav }) {
   return (
     <div className="bg-white shadow-md shadow-black/5 rounded-xl p-5">
-      <div className="h-32 bg-gray-200 rounded-lg mb-3"></div>
+      <img
+        src={fav.image}
+        alt={fav.name}
+        className="h-80 w-full object-cover rounded-lg mb-3"
+      />
 
       <h3 className="font-semibold">{fav.name}</h3>
 
