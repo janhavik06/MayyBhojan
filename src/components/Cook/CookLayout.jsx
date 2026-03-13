@@ -1,15 +1,24 @@
 import CookSidebar from "./CookSidebar";
+import Navbar from "../Navbar/Navbar";
 import { Outlet } from "react-router-dom";
+import { useState } from "react";
 
 export default function CookLayout() {
-  return (
-    <div className="flex">
-      <CookSidebar />
+  const [language, setLanguage] = useState("en");
 
-      {/* MAIN CONTENT */}
-      <main className="ml-64 flex-1 min-h-screen bg-[#F6F2EF] ">
-        <Outlet />
-      </main>
-    </div>
+  return (
+    <>
+      {/* Navbar visible */}
+      <Navbar language={language} setLanguage={setLanguage} loggedIn />
+
+      <div className="flex min-h-screen">
+        <CookSidebar />
+
+        {/* MAIN CONTENT */}
+        <main className="ml-64 flex-1 bg-[#F6F2EF]">
+          <Outlet />
+        </main>
+      </div>
+    </>
   );
 }

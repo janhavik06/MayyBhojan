@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
+import { useNavigate, Link } from "react-router-dom";
 const roles = [
   { id: "customer", label: "Customer", desc: "Order food" },
   { id: "cook", label: "Homemaker", desc: "Cook for community" },
@@ -105,17 +104,15 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
     if (setLoggedIn) setLoggedIn(true);
 
     if (user.role === "customer") navigate("/custalogin");
-
     if (user.role === "cook") {
-      const onboarded = localStorage.getItem("cook_onboarded");
+      const onboarded = localStorage.getItem(`cook_onboarded_${user.email}`);
 
-      if (onboarded) {
-        navigate("/cook/dashboard");
+      if (onboarded === "true") {
+        navigate("/cook");
       } else {
         navigate("/cook/login");
       }
     }
-
     if (user.role === "delivery") navigate("/delivery");
 
     if (user.role === "admin") navigate("/admin");
@@ -198,7 +195,23 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
               Login
             </button>
           )}
-
+          <div className="text-center mt-4">
+            {mode === "login" ? (
+              <p className="text-sm text-gray-600">
+                Don’t have an account?{" "}
+                <Link to="/signup" className="text-orange-500 font-semibold">
+                  Sign up
+                </Link>
+              </p>
+            ) : (
+              <p className="text-sm text-gray-600">
+                Already have an account?{" "}
+                <Link to="/login" className="text-orange-500 font-semibold">
+                  Login
+                </Link>
+              </p>
+            )}
+          </div>
           <p className="text-xs text-gray-500 text-center mt-8">
             We keep your info private.
           </p>

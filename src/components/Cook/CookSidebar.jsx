@@ -14,8 +14,7 @@ export default function CookSidebar() {
   const active = "bg-orange-100 text-orange-600 font-semibold";
 
   return (
-    <aside className="w-64 bg-white shadow-md shadow-black/5 flex flex-col justify-between h-167 fixed left-0 top-15">
-      {/* TOP MENU */}
+<aside className="w-64 bg-white shadow-md shadow-black/5 flex flex-col justify-between h-[calc(100vh-60px)] fixed left-0 top-[60px]">      {/* TOP MENU */}
       <div className="p-4 space-y-2">
         <NavLink
           to="/cook/orders"
