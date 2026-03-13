@@ -19,15 +19,18 @@ export default function CookVerification() {
 
   // ✅ mark onboarding step complete
   function markDocumentsComplete() {
-    const saved =
-      JSON.parse(localStorage.getItem("cook_onboarding_steps")) || {};
+    const user = JSON.parse(localStorage.getItem("maybhojan_user"));
+
+    const stepsKey = `cook_onboarding_steps_${user.email}`;
+
+    const saved = JSON.parse(localStorage.getItem(stepsKey)) || {};
 
     const updated = {
       ...saved,
       documents: true,
     };
 
-    localStorage.setItem("cook_onboarding_steps", JSON.stringify(updated));
+    localStorage.setItem(stepsKey, JSON.stringify(updated));
   }
 
   // ✅ submit handler
@@ -54,7 +57,7 @@ export default function CookVerification() {
         {/* LEFT SIDE */}
         <div>
           <p className="text-xs text-orange-500 font-semibold tracking-wider">
-            STEP 2 OF 3: VERIFICATION
+            STEP 2 OF 4: VERIFICATION
           </p>
 
           <h1 className="text-3xl font-bold mt-2">

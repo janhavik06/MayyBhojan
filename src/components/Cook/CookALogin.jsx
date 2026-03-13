@@ -17,6 +17,13 @@ export default function CookALogin() {
   //     banking: false,
   //   };
   // });
+  const navigate = useNavigate();
+
+  /* get logged in user */
+  const user = JSON.parse(localStorage.getItem("maybhojan_user"));
+
+  /* create user-specific storage key */
+  const stepsKey = `cook_onboarding_steps_${user?.email}`;
 
   const [steps, setSteps] = useState({
     identity: false,
@@ -24,42 +31,42 @@ export default function CookALogin() {
     audit: false,
     banking: false,
   });
-
   useEffect(() => {
-    const isOnboarded = localStorage.getItem("cook_onboarded");
-
-    if (!isOnboarded) {
-      const saved = localStorage.getItem("cook_onboarding_steps");
+    function loadSteps() {
+      const saved = localStorage.getItem(stepsKey);
 
       if (saved) {
         setSteps(JSON.parse(saved));
       }
-    } else {
-      navigate("/cook/dashboard");
     }
-  }, []);
 
-  useEffect(() => {
-    localStorage.setItem("cook_onboarding_steps", JSON.stringify(steps));
-  }, [steps]);
+    loadSteps();
 
-  const navigate = useNavigate();
+    window.addEventListener("focus", loadSteps);
+
+    return () => window.removeEventListener("focus", loadSteps);
+  }, [stepsKey]);
 
   const completed = Object.values(steps).filter(Boolean).length;
 
   useEffect(() => {
     const completed = Object.values(steps).every(Boolean);
-
     if (completed) {
-      localStorage.setItem("cook_onboarded", "true");
-      navigate("/cook/dashboard");
+      const user = JSON.parse(localStorage.getItem("maybhojan_user"));
+
+      if (user) {
+        localStorage.setItem(`cook_onboarded_${user.email}`, "true");
+      }
+
+      navigate("/cook/login");
     }
   }, [steps]);
-
   function completeStep(key) {
     setSteps((prev) => {
       const updated = { ...prev, [key]: true };
-      localStorage.setItem("cook_onboarding_steps", JSON.stringify(updated));
+
+      localStorage.setItem(stepsKey, JSON.stringify(updated));
+
       return updated;
     });
   }
@@ -102,7 +109,7 @@ export default function CookALogin() {
             button="Verify Identity"
             onClick={() => {
               navigate("/cook/identity");
-              completeStep("identity");
+              // completeStep("identity");
             }}
           />
 
@@ -114,7 +121,7 @@ export default function CookALogin() {
             button="Upload Documents"
             onClick={() => {
               navigate("/cook/verification");
-              completeStep("documents");
+              // completeStep("documents");
             }}
           />
 
@@ -142,7 +149,7 @@ export default function CookALogin() {
             button="Setup Bank"
             onClick={() => {
               navigate("/cook/bank");
-              completeStep("banking");
+              // completeStep("banking");
             }}
           />
         </section>
