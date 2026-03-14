@@ -241,7 +241,6 @@ export default function CookBankSetup() {
     if (!form.consent) return "Please confirm details are correct";
     return "";
   }
-
   function handleSubmit() {
     const err = validate();
 
@@ -253,30 +252,21 @@ export default function CookBankSetup() {
     setError("");
     setStatus("pending");
 
-    // Save bank info locally (startup demo)
-    // localStorage.setItem("cook_bank", JSON.stringify(form));
     const user = JSON.parse(localStorage.getItem("maybhojan_user"));
+    const stepsKey = `cook_onboarding_steps_${user?.email}`;
 
-    localStorage.setItem(`cook_onboarded_${user.email}`, "true");
+    const saved = JSON.parse(localStorage.getItem(stepsKey)) || {};
 
-    const saved =
-      JSON.parse(localStorage.getItem("cook_onboarding_steps")) || {};
+    localStorage.setItem(stepsKey, JSON.stringify({ ...saved, banking: true }));
 
-    localStorage.setItem(
-      "cook_onboarding_steps",
-      JSON.stringify({ ...saved, banking: true }),
-    );
-
-    // simulate verification
     setTimeout(() => {
       setStatus("verified");
 
       setTimeout(() => {
-        navigate("/cook");
+        navigate("/cook/login"); // ✅ go back to onboarding page
       }, 1200);
     }, 1500);
   }
-
   return (
     <div className="min-h-screen bg-[#F6F2EF]">
       <main className="max-w-6xl mx-auto px-8 py-10 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-10">
