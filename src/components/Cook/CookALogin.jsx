@@ -3,20 +3,6 @@ import { useNavigate } from "react-router-dom";
 import StartAuditCTA from "./StartAuditCTA";
 
 export default function CookALogin() {
-  // const [steps, setSteps] = useState(() => {
-  //   try {
-  //     const saved = JSON.parse(localStorage.getItem("cook_onboarding_steps"));
-
-  //     if (saved) return saved;
-  //   } catch {}
-
-  //   return {
-  //     identity: false,
-  //     documents: false,
-  //     audit: false,
-  //     banking: false,
-  //   };
-  // });
   const navigate = useNavigate();
 
   /* get logged in user */
@@ -24,7 +10,17 @@ export default function CookALogin() {
 
   /* create user-specific storage key */
   const stepsKey = `cook_onboarding_steps_${user?.email}`;
+  // const [applied, setApplied] = useState(false);
 
+  // useEffect(() => {
+  //   const user = JSON.parse(localStorage.getItem("maybhojan_user"));
+  //   const requests =
+  //     JSON.parse(localStorage.getItem("verification_requests")) || [];
+
+  //   const found = requests.find((r) => r.email === user?.email);
+
+  //   if (found) setApplied(true);
+  // }, []);
   const [steps, setSteps] = useState({
     identity: false,
     documents: false,
@@ -49,16 +45,22 @@ export default function CookALogin() {
 
   const completed = Object.values(steps).filter(Boolean).length;
 
+  // useEffect(() => {
+  //   const completed = Object.values(steps).every(Boolean);
+  //   if (completed) {
+  //     const user = JSON.parse(localStorage.getItem("maybhojan_user"));
+
+  //     if (user) {
+  //       localStorage.setItem(`cook_onboarded_${user.email}`, "true");
+  //     }
+
+  //     navigate("/cook/login");
+  //   }
+  // }, [steps]);
+
   useEffect(() => {
-    const completed = Object.values(steps).every(Boolean);
-    if (completed) {
-      const user = JSON.parse(localStorage.getItem("maybhojan_user"));
-
-      if (user) {
-        localStorage.setItem(`cook_onboarded_${user.email}`, "true");
-      }
-
-      navigate("/cook/login");
+    if (steps.audit) {
+      navigate("/cook/dashboard"); // ✅ ONLY after admin approval
     }
   }, [steps]);
   function completeStep(key) {
@@ -125,33 +127,35 @@ export default function CookALogin() {
             }}
           />
 
-          <div className="mt-4">
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-orange-200">
-              <h3 className="font-semibold">Hygiene & Safety Audit</h3>
-
-              <p className="text-gray-500 text-sm mt-1 mb-4">
-                Kitchen self-tour to maintain quality
-              </p>
-
-              <StartAuditCTA
-                kitchenName="Your Kitchen"
-                docsReady={steps.documents}
-                onSubmit={() => completeStep("audit")}
-              />
-            </div>
-          </div>
-
           <ChecklistCard
             title="Banking & Payouts"
             desc="Add bank details for payments"
             done={steps.banking}
-            active={steps.audit && !steps.banking}
+            active={steps.documents && !steps.banking}
             button="Setup Bank"
             onClick={() => {
               navigate("/cook/bank");
               // completeStep("banking");
             }}
           />
+          <div className="mt-4">
+            <div
+              className={`bg-white rounded-xl p-6 shadow-sm border 
+    ${steps.banking ? "border-orange-300" : "border-gray-200 opacity-50"}
+  `}
+            >
+              <h3 className="font-semibold">Kitchen Verification</h3>
+
+              <p className="text-gray-500 text-sm mt-1 mb-4">
+                Apply for admin approval to continue
+              </p>
+
+              <StartAuditCTA
+                kitchenName="Your Kitchen"
+                docsReady={steps.banking}
+              />
+            </div>
+          </div>
         </section>
 
         {/* HELP SECTION */}
