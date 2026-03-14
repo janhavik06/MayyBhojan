@@ -105,12 +105,13 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
 
     if (user.role === "customer") navigate("/custalogin");
     if (user.role === "cook") {
-      const onboarded = localStorage.getItem(`cook_onboarded_${user.email}`);
+      const stepsKey = `cook_onboarding_steps_${user.email}`;
+      const steps = JSON.parse(localStorage.getItem(stepsKey)) || {};
 
-      if (onboarded === "true") {
-        navigate("/cook");
+      if (steps.audit) {
+        navigate("/cook"); // ✅ approved
       } else {
-        navigate("/cook/login");
+        navigate("/cook/login"); // ✅ onboarding / pending
       }
     }
     if (user.role === "delivery") navigate("/delivery");

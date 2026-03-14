@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useCart } from "../Cart/CartContext";
 import { useFavorites } from "../Customer/Dashboard/FavoriteContext";
 import { moods } from "../../data/constants";
-
+import { getMenu } from "../../services/menuService";
 import { Link } from "react-router-dom";
 import { meals } from "../../data/CustMeals";
 import { FiSearch } from "react-icons/fi";
@@ -26,8 +26,13 @@ export default function CustALogin() {
   const [toast, setToast] = useState(false);
   const { toggleFavorite, isFavorite } = useFavorites();
 
+  const [menu, setMenu] = useState([]);
+
+  useEffect(() => {
+    setMenu(getMenu());
+  }, []);
   const loadMore = () => setVisible((v) => v + 8);
-  let filteredMeals = meals.filter((meal) => {
+  let filteredMeals = menu.filter((meal) => {
     const matchesSearch = meal.name.toLowerCase().includes(query.toLowerCase());
 
     const matchesVeg = vegOnly ? meal.veg : true;
