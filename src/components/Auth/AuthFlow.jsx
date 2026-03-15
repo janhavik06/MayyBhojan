@@ -83,6 +83,10 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
 
     localStorage.setItem("maybhojan_users", JSON.stringify(users));
 
+    // 🔥 RESET OLD DATA (IMPORTANT)
+    localStorage.removeItem(`cook_onboarding_steps_${email}`);
+    localStorage.removeItem(`delivery_onboarding_steps_${email}`);
+
     navigate("/login");
   };
   /* ================= LOGIN ================= */
@@ -108,13 +112,22 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
       const stepsKey = `cook_onboarding_steps_${user.email}`;
       const steps = JSON.parse(localStorage.getItem(stepsKey)) || {};
 
-      if (steps.audit) {
+      if (steps?.audit == true) {
         navigate("/cook"); // ✅ approved
       } else {
         navigate("/cook/login"); // ✅ onboarding / pending
       }
     }
-    if (user.role === "delivery") navigate("/delivery");
+    if (user.role === "delivery") {
+      const stepsKey = `delivery_onboarding_steps_${user.email}`;
+      const steps = JSON.parse(localStorage.getItem(stepsKey));
+
+      if (!steps || steps.audit !== true) {
+        navigate("/delivery"); // ✅ onboarding
+      } else {
+        navigate("/delivery/dashboard"); // ✅ approved
+      }
+    }
 
     if (user.role === "admin") navigate("/admin");
   };

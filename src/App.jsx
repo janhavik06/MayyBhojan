@@ -35,9 +35,12 @@ import AdminDashboard from "./components/Admin/Dashboard/AdminDashboard";
 import AdminApprovals from "./components/Admin/Dashboard/AdminApprovals";
 import AdminTrustSafety from "./components/Admin/Dashboard/AdminTrustSafety";
 import CookIdentityVerification from "./components/Cook/CookIdentityVerification";
-import CookBasicDetails from "./components/Cook/CookBasicDetails";
-import CookKitchenSetup from "./components/Cook/CookKitchenSetup";
-import CookPayoutSetup from "./components/Cook/CookPayoutSetup";
+
+import DeliveryOnboarding from "./components/Delivery/DeliveryOnboarding";
+import DeliveryIdentity from "./components/Delivery/DeliveryIdentity";
+import DeliveryVerification from "./components/Delivery/DeliveryVerification";
+import VehicleSetup from "./components/Delivery/VehicleSetup";
+import DeliveryOnboardingLayout from "./components/Delivery/DeliveryOnboardingLayout";
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(() => {
     const user = JSON.parse(localStorage.getItem("maybhojan_user"));
@@ -157,7 +160,6 @@ export default function App() {
           <Route path="/about" element={<About />} />
           <Route path="/how" element={<How />} />
         </Route>
-
         {/* COOK DASHBOARD (NO FOOTER) */}
         <Route element={<CookLayout />}>
           <Route path="/cook" element={<CookDashboard />} />
@@ -168,14 +170,22 @@ export default function App() {
           <Route path="/cook/kitchen" element={<CookKitchenInfo />} />
           <Route path="/cook/identity" element={<CookIdentityVerification />} />
         </Route>
-
+        // ✅ ONBOARDING (no sidebar, only navbar)
+        <Route element={<DeliveryOnboardingLayout />}>
+          <Route path="/delivery/onboarding" element={<DeliveryOnboarding />} />
+          <Route path="/delivery/identity" element={<DeliveryIdentity />} />
+          <Route
+            path="/delivery/verification"
+            element={<DeliveryVerification />}
+          />
+          <Route path="/delivery/vehicle" element={<VehicleSetup />} />
+        </Route>
         {/* DELIVERY DASHBOARD */}
         <Route element={<DeliveryLayout />}>
           <Route path="/delivery" element={<DeliveryDashboard />} />
           <Route path="/delivery/active" element={<ActiveOrder />} />
           <Route path="/delivery/wallet" element={<DeliveryWallet />} />
         </Route>
-
         {/* ADMIN DASHBOARD */}
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<AdminDashboard />} />
