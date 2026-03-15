@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getMenu, addDish } from "../../../services/menuService";
 export default function CookMenu() {
   const [filter, setFilter] = useState("all");
