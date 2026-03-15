@@ -1,253 +1,103 @@
-import React, { useEffect, useState } from "react";
-import {
-  FiNavigation,
-  FiPhone,
-  FiMapPin,
-  FiCheck,
-  FiRefreshCw,
-} from "react-icons/fi";
-
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { getUser } from "../../../utils/getUser";
 export default function ActiveOrder() {
-  const [order, setOrder] = useState(null);
-
-  const [status, setStatus] = useState(() => {
-    return (
-      JSON.parse(localStorage.getItem("active_delivery_status")) || "accepted"
-    );
-  });
+  const [orders, setOrders] = useState([]);
+  const user = getUser();
+  const partnerId = user?.id;
+  const API = "http://localhost:8080/api/delivery";
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("active_delivery"));
-    if (saved) setOrder(saved);
+    loadActiveOrders();
+
+    const interval = setInterval(() => {
+      loadActiveOrders();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  function updateStatus(next) {
-    setStatus(next);
-    localStorage.setItem("active_delivery_status", JSON.stringify(next));
+  async function loadActiveOrders() {
+    try {
+      const res = await axios.get(`${API}/active?partnerId=${partnerId}`);
+
+      setOrders(res.data);
+    } catch (err) {
+      console.error("Error loading active deliveries", err);
+    }
   }
 
-  function completeDelivery() {
-    const history = JSON.parse(localStorage.getItem("delivery_history")) || [];
+  async function markDelivered(orderId) {
+    try {
+      await axios.put(`${API}/deliver/${orderId}`);
 
-    history.push({
-      ...order,
-      completedAt: new Date().toISOString(),
-    });
-
-    localStorage.setItem("delivery_history", JSON.stringify(history));
-
-    localStorage.removeItem("active_delivery");
-    localStorage.removeItem("active_delivery_status");
-
-    setOrder(null);
-  }
-
-  function openMaps() {
-    const destination =
-      status === "picked_up" || status === "on_the_way"
-        ? order.drop
-        : order.address;
-
-    window.open(
-      `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`,
-    );
-  }
-
-  if (!order) return <EmptyState />;
-
-  function refreshOrders() {
-    const saved = JSON.parse(localStorage.getItem("active_delivery"));
-
-    if (saved) {
-      setOrder(saved);
-    } else {
-      setOrder(null);
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+    } catch (err) {
+      console.error("Deliver error", err);
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#F6F2EF] p-6">
-      {/* HEADER */}
-      <div className="bg-white rounded-2xl shadow-sm p-5 mb-6 flex justify-between items-center">
-        <div>
-          <p className="text-xs text-gray-500">Active Order</p>
-          <h2 className="font-semibold">{order.kitchen}</h2>
-          <p className="text-xs text-gray-400">Order ID: #{order.id}</p>
-        </div>
+    <div className="bg-[#F6F2EF] min-h-screen p-8">
+      <h1 className="text-3xl font-bold mb-8">Active Deliveries</h1>
 
-        <div className="text-right">
-          <p className="text-xs text-gray-500">Earnings</p>
-          <p className="text-lg font-bold text-orange-500">₹{order.earn}</p>
-        </div>
-      </div>
+      {orders.length === 0 && (
+        <p className="text-gray-500">No active deliveries</p>
+      )}
 
-      {/* STATUS */}
-      <div className="bg-white rounded-xl p-4 mb-6">
-        <div className="flex justify-between text-xs font-medium">
-          {["Accepted", "Picked Up", "On the Way", "Delivered"].map((s, i) => (
-            <div
-              key={i}
-              className={`flex-1 text-center ${
-                i <= getIndex(status) ? "text-orange-500" : "text-gray-400"
-              }`}
-            >
-              {s}
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-3 h-2 bg-gray-200 rounded-full">
+      <div className="space-y-6">
+        {orders.map((order) => (
           <div
-            className="h-2 bg-orange-500 rounded-full"
-            style={{
-              width: `${(getIndex(status) / 3) * 100}%`,
-            }}
-          />
-        </div>
-      </div>
+            key={order.id}
+            className="bg-white p-6 rounded-2xl shadow-md border hover:shadow-lg transition"
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-semibold text-lg">Order #{order.id}</h3>
 
-      {/* MAIN */}
-      <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
-        {/* LEFT: NAVIGATION + ACTION */}
-        <div className="space-y-5">
-          {/* NAVIGATION */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <h3 className="font-semibold mb-3">Navigation</h3>
+                <p className="text-sm text-gray-500">
+                  Kitchen: Homemaker Kitchen
+                </p>
 
-            <button
-              onClick={openMaps}
-              className="w-full bg-orange-500 text-white py-3 rounded-xl flex items-center justify-center gap-2"
-            >
-              <FiNavigation /> Open Maps
-            </button>
+                <p className="text-sm text-gray-600 mt-2">
+                  Pickup: {order.house}, {order.area}
+                </p>
 
-            <p className="text-xs text-gray-500 mt-2 text-center">
-              {status === "picked_up" || status === "on_the_way"
-                ? "Heading to customer"
-                : "Navigate to pickup location"}
-            </p>
-          </div>
+                <p className="text-sm text-gray-500">
+                  {order.landmark} - {order.pincode}
+                </p>
+              </div>
 
-          {/* QUICK ACTIONS */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <h3 className="font-semibold mb-3">Quick Actions</h3>
+              <span className="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-medium">
+                {order.status}
+              </span>
+            </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <button className="border rounded-xl py-2 flex items-center justify-center gap-2">
-                <FiPhone /> Call Kitchen
-              </button>
+            <div className="flex justify-between items-center mt-4">
+              <div className="text-sm">
+                <p>
+                  Delivery Fee
+                  <span className="font-semibold text-green-600 ml-2">
+                    ₹{order.deliveryFee}
+                  </span>
+                </p>
 
-              <button className="border rounded-xl py-2 flex items-center justify-center gap-2">
-                <FiPhone /> Call Customer
-              </button>
+                <p>
+                  Order Total
+                  <span className="font-semibold ml-2">₹{order.total}</span>
+                </p>
+              </div>
 
               <button
-                onClick={refreshOrders}
-                className="border rounded-xl py-2 flex items-center justify-center gap-2"
+                onClick={() => markDelivered(order.id)}
+                className="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-xl text-sm font-semibold transition"
               >
-                <FiRefreshCw /> Refresh
-              </button>
-
-              <button className="border rounded-xl py-2 text-red-500">
-                Report Issue
+                Mark Delivered
               </button>
             </div>
           </div>
-        </div>
-
-        {/* RIGHT: DETAILS */}
-        <div className="space-y-4">
-          <Card title="Pickup">
-            <p className="font-medium">{order.kitchen}</p>
-            <p className="text-sm text-gray-500">{order.address}</p>
-          </Card>
-
-          <Card title="Drop">
-            <p className="font-medium">{order.drop}</p>
-          </Card>
-
-          <Card title="Order Items">
-            <p className="text-sm">{order.items}</p>
-          </Card>
-
-          {/* ACTION BUTTON */}
-          <div>
-            {status === "accepted" && (
-              <PrimaryBtn onClick={() => updateStatus("picked_up")}>
-                Confirm Pickup
-              </PrimaryBtn>
-            )}
-
-            {status === "picked_up" && (
-              <PrimaryBtn onClick={() => updateStatus("on_the_way")}>
-                Start Delivery
-              </PrimaryBtn>
-            )}
-
-            {status === "on_the_way" && (
-              <PrimaryBtn
-                onClick={() => {
-                  updateStatus("delivered");
-                  completeDelivery();
-                }}
-              >
-                Complete Delivery
-              </PrimaryBtn>
-            )}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
-  );
-}
-
-//////////////////////
-// EMPTY STATE
-//////////////////////
-
-function EmptyState() {
-  return (
-    <div className="min-h-screen bg-[#f4f4f5] flex items-center justify-center">
-      <div className="bg-white border rounded-xl p-8 text-center w-full max-w-md">
-        <p className="font-medium">No active delivery</p>
-        <p className="text-sm text-gray-500 mt-2">
-          Waiting for new assignments.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-//////////////////////
-// HELPERS
-//////////////////////
-
-function getIndex(status) {
-  const map = {
-    accepted: 0,
-    picked_up: 1,
-    on_the_way: 2,
-    delivered: 3,
-  };
-  return map[status];
-}
-
-function Card({ title, children }) {
-  return (
-    <div className="bg-white border rounded-xl p-4">
-      <p className="text-xs text-gray-500 mb-2">{title}</p>
-      {children}
-    </div>
-  );
-}
-
-function PrimaryBtn({ children, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full bg-black text-white py-3 rounded-lg font-medium"
-    >
-      {children}
-    </button>
   );
 }
