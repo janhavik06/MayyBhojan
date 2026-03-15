@@ -10,7 +10,7 @@ export default function StartAuditCTA({
   const [showMissing, setShowMissing] = useState(false);
 
   const user = JSON.parse(localStorage.getItem("maybhojan_user"));
-
+  const type = user?.role; // or user?.type depending on your structure
   const [status, setStatus] = useState(null);
   const [message, setMessage] = useState("");
 
@@ -21,7 +21,10 @@ export default function StartAuditCTA({
       const existing = requests.find((r) => r.email === user?.email);
 
       // ✅ Check approved
-      const stepsKey = `cook_onboarding_steps_${user?.email}`;
+      const stepsKey =
+        type === "delivery"
+          ? `delivery_onboarding_steps_${user?.email}`
+          : `cook_onboarding_steps_${user?.email}`;
       const steps = JSON.parse(localStorage.getItem(stepsKey)) || {};
 
       if (steps.audit === true) {

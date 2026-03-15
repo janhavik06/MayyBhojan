@@ -28,9 +28,11 @@ export default function Favorites() {
     showToast("Added to cart");
   }
 
-  const filtered = (favorites || []).filter((m) =>
-    m.name.toLowerCase().includes(search.toLowerCase()),
-  );
+ const filtered = (favorites || []).filter((m) =>
+  (m.foodName || m.name || "")
+    .toLowerCase()
+    .includes(search.toLowerCase())
+);
 
   return (
     <div className="min-h-screen bg-[#F6F2EF]">
@@ -87,40 +89,61 @@ export default function Favorites() {
 ////////////////////////////
 // COMPONENTS
 ////////////////////////////
-function MealCard({ meal, onRemove, onAdd }) {
+
+
+ function MealCard({ meal, onRemove, onAdd }) {
+
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+
+    <div className="bg-white rounded-xl p-6 shadow-sm flex flex-col justify-between">
+
       <div>
-        <h3 className="text-lg font-semibold text-gray-800">{meal.name}</h3>
 
-        <p className="text-gray-500 text-sm mt-1">
-          {meal.chef} • ⭐ {meal.rating}
+        <span className={`text-xs px-2 py-1 rounded-full border w-fit
+        ${meal.veg
+          ? "bg-green-50 text-green-700 border-green-200"
+          : "bg-red-50 text-red-600 border-red-200"
+        }`}>
+          {meal.veg ? "Veg" : "Non-Veg"}
+        </span>
+
+        <h3 className="text-lg font-semibold mt-2">
+          {meal.name}
+        </h3>
+
+        <p className="text-gray-500 text-sm">
+          by {meal.chef}
         </p>
 
-        <p className="text-orange-500 font-semibold text-lg mt-2">
-          ₹{meal.price}
-        </p>
+        <div className="flex justify-between text-sm mt-3">
+          <span>⏱ {meal.time} min</span>
+          <span>₹ {meal.price}</span>
+        </div>
+
       </div>
 
       <div className="flex gap-3 mt-5">
+
         <button
           onClick={onAdd}
-          className="flex items-center justify-center gap-2 flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg font-medium transition"
+          className="flex-1 bg-orange-500 text-white py-2 rounded-lg"
         >
-          <FiShoppingCart size={16} />
           Add to Cart
         </button>
 
         <button
           onClick={onRemove}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition"
+          className="px-4 py-2 bg-gray-100 rounded-lg"
         >
-          <FiTrash2 size={15} />
           Remove
         </button>
+
       </div>
+
     </div>
+
   );
+
 }
 function EmptyState() {
   return (
