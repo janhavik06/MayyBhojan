@@ -1,44 +1,13 @@
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import { getMenu, addDish } from "../../../services/menuService";
 export default function CookMenu() {
   const [filter, setFilter] = useState("all");
 
-  const [dishes, setDishes] = useState([
-    {
-      id: 1,
-      name: "Grandma's Special Dal Tadka",
-      veg: true,
-      price: 180,
-      time: "30-40 min",
-      orders: 142,
-      available: true,
-      tags: ["Comfort", "Healthy", "Protein"],
-      img: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d",
-    },
-    {
-      id: 2,
-      name: "Paneer Butter Masala",
-      veg: true,
-      price: 220,
-      time: "45 min",
-      orders: 389,
-      available: true,
-      tags: ["Spicy", "Rich", "Best Seller"],
-      img: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7",
-    },
-    {
-      id: 3,
-      name: "Home-style Chicken Curry",
-      veg: false,
-      price: 280,
-      time: "60 min",
-      orders: 88,
-      available: false,
-      tags: ["Spicy", "Traditional"],
-      img: "https://images.unsplash.com/photo-1604908177225-3c9a5d0c3572",
-    },
-  ]);
+  const [dishes, setDishes] = useState([]);
 
+  useEffect(() => {
+    setDishes(getMenu());
+  }, []);
   function addDish(newDish) {
     setDishes((prev) => [
       ...prev,
@@ -355,15 +324,26 @@ function AddDishModal({ close, addDish }) {
 
           <button
             onClick={() => {
-              addDish({
+              const user = JSON.parse(localStorage.getItem("maybhojan_user"));
+
+              const newDish = {
+                id: Date.now(),
+                cookEmail: user.email,
+                kitchenName: "My Home Kitchen",
                 name: dish.name,
                 price: dish.price,
-                time: dish.time,
                 veg: dish.type === "veg",
-                img: dish.image
-                  ? URL.createObjectURL(dish.image)
-                  : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c",
-              });
+                time: dish.time,
+                tags: dish.tags.split(",").map((t) => t.trim()),
+                image: dish.image ? URL.createObjectURL(dish.image) : "default",
+                available: true,
+                orders: 0,
+              };
+
+              const updatedMenu = addDish(newDish);
+
+              setDishes(updatedMenu);
+
               close();
             }}
             className="bg-orange-500 text-white px-6 py-2 rounded-xl"

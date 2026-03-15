@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function CookVerification() {
+export default function DeliveryVerification() {
   const navigate = useNavigate();
 
   const [files, setFiles] = useState({
     id: null,
-    fssai: null,
-    kitchen: null,
+    license: null,
   });
 
   const [error, setError] = useState("");
@@ -17,11 +16,11 @@ export default function CookVerification() {
     setFiles((prev) => ({ ...prev, [type]: file }));
   }
 
-  // ✅ mark onboarding step complete
+  // ✅ mark step complete
   function markDocumentsComplete() {
     const user = JSON.parse(localStorage.getItem("maybhojan_user"));
 
-    const stepsKey = `cook_onboarding_steps_${user.email}`;
+    const stepsKey = `delivery_onboarding_steps_${user.email}`;
 
     const saved = JSON.parse(localStorage.getItem(stepsKey)) || {};
 
@@ -33,9 +32,9 @@ export default function CookVerification() {
     localStorage.setItem(stepsKey, JSON.stringify(updated));
   }
 
-  // ✅ submit handler
+  // ✅ submit
   function handleSubmit() {
-    if (!files.id || !files.fssai || !files.kitchen) {
+    if (!files.id || !files.license) {
       setError("Please upload all required documents.");
       return;
     }
@@ -45,9 +44,8 @@ export default function CookVerification() {
 
     setSuccess(true);
 
-    // redirect after short delay
     setTimeout(() => {
-      navigate("/cook/login");
+      navigate("/delivery/onboarding");
     }, 1500);
   }
 
@@ -57,16 +55,15 @@ export default function CookVerification() {
         {/* LEFT SIDE */}
         <div>
           <p className="text-xs text-orange-500 font-semibold tracking-wider">
-            STEP 2 OF 4: VERIFICATION
+            STEP 2 OF 3: VERIFICATION
           </p>
 
           <h1 className="text-3xl font-bold mt-2">
-            Kitchen Verification & Security
+            Delivery Verification & Safety
           </h1>
 
           <p className="text-gray-600 mt-2">
-            We take safety seriously. Please upload clear documents to help us
-            verify your kitchen.
+            Upload your documents to verify your identity as a delivery partner.
           </p>
 
           {/* progress */}
@@ -84,19 +81,10 @@ export default function CookVerification() {
             />
 
             <UploadBox
-              title="FSSAI Certificate"
+              title="Driving License"
               required
-              file={files.fssai}
-              onUpload={(f) => handleUpload("fssai", f)}
-            />
-          </div>
-
-          <div className="mt-6">
-            <UploadBox
-              title="Kitchen Photos"
-              required
-              file={files.kitchen}
-              onUpload={(f) => handleUpload("kitchen", f)}
+              file={files.license}
+              onUpload={(f) => handleUpload("license", f)}
             />
           </div>
 
@@ -128,8 +116,7 @@ export default function CookVerification() {
           <h3 className="font-semibold">Quick Help</h3>
 
           <p className="text-sm text-gray-600 mt-3">
-            Verification helps us maintain safety standards and build customer
-            trust in your kitchen.
+            Verification ensures safe and trusted deliveries for customers.
           </p>
 
           <div className="mt-6 text-sm">
@@ -140,7 +127,7 @@ export default function CookVerification() {
           </div>
 
           <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mt-6 text-sm">
-            “A clear photo of your kitchen makes customers trust you more.”
+            “Verified delivery partners get more orders and higher trust.”
           </div>
 
           <button className="mt-6 text-orange-500 font-semibold">

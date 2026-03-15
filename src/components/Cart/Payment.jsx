@@ -1,29 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCart } from "./CartContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { createOrder } from "../../api/orderApi";
 import { clearCart } from "../../api/cartApi";
- import { getUser } from "../../utils/getUser";
+import { getUser } from "../../utils/getUser";
 
 export default function Payment() {
 
   const { cart, total, emptyCart } = useCart();
+
   const navigate = useNavigate();
   const location = useLocation();
 
   const addressId = location.state?.addressId;
 
   const [method, setMethod] = useState("card");
+  const [showSuccess, setShowSuccess] = useState(false);
 
-
-const user = getUser();
-const userId = user?.id;
+  const user = getUser();
+  const userId = user?.id;
 
   const delivery = 35;
   const platform = 12;
   const taxes = 28.5;
 
   const grand = total + delivery + platform + taxes;
+
+  useEffect(() => {
+
+    if (showSuccess) {
+
+      const timer = setTimeout(() => {
+        navigate("/confirm");
+      }, 3500);
+
+      return () => clearTimeout(timer);
+
+    }
+
+  }, [showSuccess, navigate]);
 
   async function confirmPayment() {
 
@@ -43,14 +58,21 @@ const userId = user?.id;
         items: items
       });
 
-      const orderId = res.data.id; // get order id
+      const orderId = res.data.id;
 
       await clearCart(userId);
+
       emptyCart();
 
-      navigate("/confirm", {
-        state: { orderId }
-      });
+      setShowSuccess(true);
+
+      setTimeout(() => {
+
+        navigate("/confirm", {
+          state: { orderId }
+        });
+
+      }, 2000);
 
     } catch (err) {
 
@@ -69,7 +91,9 @@ const userId = user?.id;
         {/* PAYMENT METHODS */}
         <div className="lg:col-span-2 bg-white rounded-2xl border p-8">
 
-          <h2 className="text-xl font-bold">Choose Payment Method</h2>
+          <h2 className="text-xl font-bold">
+            Choose Payment Method
+          </h2>
 
           <div className="space-y-4 mt-6">
 
@@ -149,6 +173,42 @@ const userId = user?.id;
         </div>
 
       </div>
+
+      {/* SUCCESS POPUP */}
+      {showSuccess && (
+        <>
+          <Confetti recycle={false} numberOfPieces={300} />
+
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+
+            <div className="bg-white rounded-3xl shadow-2xl p-10 text-center w-[420px]">
+
+              <div className="text-green-500 text-6xl mb-4">✔</div>
+
+              <h2 className="text-2xl font-bold text-gray-800">
+                Order Placed Successfully!
+              </h2>
+
+              <p className="text-gray-500 mt-2">
+                Your food is being prepared 🍛
+              </p>
+
+              <p className="text-sm text-gray-400 mt-1">
+                Redirecting to your order tracking...
+              </p>
+
+              <button
+                onClick={() => navigate("/orders")}
+                className="mt-6 bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold"
+              >
+                View My Orders
+              </button>
+
+            </div>
+
+          </div>
+        </>
+      )}
 
     </div>
 

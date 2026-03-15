@@ -1,36 +1,36 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import StartAuditCTA from "./StartAuditCTA";
+import StartAuditCTA from "../Cook/StartAuditCTA";
 
-export default function CookALogin() {
+export default function DeliveryOnboarding() {
   const navigate = useNavigate();
+  const [requestStatus, setRequestStatus] = useState(null);
+  useEffect(() => {
+    const requests =
+      JSON.parse(localStorage.getItem("verification_requests")) || [];
 
-  /* get logged in user */
+    const found = requests.find((r) => r.email === user?.email);
+
+    if (found) {
+      setRequestStatus(found);
+    }
+  }, []);
   const user = JSON.parse(localStorage.getItem("maybhojan_user"));
 
   /* create user-specific storage key */
-  const stepsKey = `cook_onboarding_steps_${user?.email}`;
-  // const [applied, setApplied] = useState(false);
+  const stepsKey = `delivery_onboarding_steps_${user?.email}`;
 
-  // useEffect(() => {
-  //   const user = JSON.parse(localStorage.getItem("maybhojan_user"));
-  //   const requests =
-  //     JSON.parse(localStorage.getItem("verification_requests")) || [];
-
-  //   const found = requests.find((r) => r.email === user?.email);
-
-  //   if (found) setApplied(true);
-  // }, []);
   const [steps, setSteps] = useState({
     identity: false,
     documents: false,
+    vehicle: false, // 🔥 changed from banking
     audit: false,
-    banking: false,
   });
+
+  /* LOAD STEPS */
   useEffect(() => {
     function loadSteps() {
       const saved = localStorage.getItem(stepsKey);
-
       if (saved) {
         setSteps(JSON.parse(saved));
       }
@@ -39,36 +39,22 @@ export default function CookALogin() {
     loadSteps();
 
     window.addEventListener("focus", loadSteps);
-
     return () => window.removeEventListener("focus", loadSteps);
   }, [stepsKey]);
 
   const completed = Object.values(steps).filter(Boolean).length;
 
-  // useEffect(() => {
-  //   const completed = Object.values(steps).every(Boolean);
-  //   if (completed) {
-  //     const user = JSON.parse(localStorage.getItem("maybhojan_user"));
-
-  //     if (user) {
-  //       localStorage.setItem(`cook_onboarded_${user.email}`, "true");
-  //     }
-
-  //     navigate("/cook/login");
-  //   }
-  // }, [steps]);
-
+  /* REDIRECT AFTER APPROVAL */
   useEffect(() => {
     if (steps.audit) {
-      navigate("/cook/dashboard"); // ✅ ONLY after admin approval
+      navigate("/delivery/dashboard"); // ✅ delivery dashboard
     }
   }, [steps]);
+
   function completeStep(key) {
     setSteps((prev) => {
       const updated = { ...prev, [key]: true };
-
       localStorage.setItem(stepsKey, JSON.stringify(updated));
-
       return updated;
     });
   }
@@ -78,18 +64,17 @@ export default function CookALogin() {
       <div className="max-w-4xl mx-auto px-6">
         {/* HERO */}
         <header className="text-center mb-10">
-          <span className="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs">
-            👩‍🍳 Welcome, Home Chef!
+          <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs">
+            🚚 Welcome, Delivery Partner!
           </span>
 
           <h1 className="text-4xl font-bold mt-4">
-            Start Your Journey to
-            <span className="text-orange-500"> Financial Independence</span>
+            Start Your Journey with
+            <span className="text-blue-500"> Flexible Earnings</span>
           </h1>
 
           <p className="text-gray-600 mt-3">
-            Complete these steps to open your kitchen to thousands of hungry
-            neighbors.
+            Complete these steps to start delivering happiness to customers.
           </p>
         </header>
 
@@ -103,56 +88,53 @@ export default function CookALogin() {
             <span>{completed} of 4 Completed</span>
           </div>
 
+          {/* STEP 1 */}
           <ChecklistCard
             title="Identity Verification"
-            desc="Confirm your account details securely."
+            desc="Confirm your personal details securely."
             done={steps.identity}
             active={!steps.identity}
             button="Verify Identity"
-            onClick={() => {
-              navigate("/cook/identity");
-              // completeStep("identity");
-            }}
+            onClick={() => navigate("/delivery/identity")}
           />
 
+          {/* STEP 2 */}
           <ChecklistCard
             title="Document Upload"
-            desc="Upload Aadhaar / Voter ID"
+            desc="Upload Aadhaar / Driving License"
             done={steps.documents}
             active={steps.identity && !steps.documents}
             button="Upload Documents"
-            onClick={() => {
-              navigate("/cook/verification");
-              // completeStep("documents");
-            }}
+            onClick={() => navigate("/delivery/verification")}
           />
 
+          {/* STEP 3 */}
           <ChecklistCard
-            title="Banking & Payouts"
-            desc="Add bank details for payments"
-            done={steps.banking}
-            active={steps.documents && !steps.banking}
-            button="Setup Bank"
-            onClick={() => {
-              navigate("/cook/bank");
-              // completeStep("banking");
-            }}
+            title="Vehicle & License"
+            desc="Add vehicle details and license"
+            done={steps.vehicle}
+            active={steps.documents && !steps.vehicle}
+            button="Add Vehicle"
+            onClick={() => navigate("/delivery/vehicle")}
           />
+
+          {/* STEP 4 - VERIFICATION */}
           <div className="mt-4">
             <div
               className={`bg-white rounded-xl p-6 shadow-sm border 
-    ${steps.banking ? "border-orange-300" : "border-gray-200 opacity-50"}
-  `}
+              ${steps.vehicle ? "border-blue-300" : "border-gray-200 opacity-50"}
+            `}
             >
-              <h3 className="font-semibold">Kitchen Verification</h3>
+              <h3 className="font-semibold">Delivery Partner Verification</h3>
 
               <p className="text-gray-500 text-sm mt-1 mb-4">
-                Apply for admin approval to continue
+                Apply for admin approval to start deliveries
               </p>
 
               <StartAuditCTA
-                kitchenName="Your Kitchen"
-                docsReady={steps.banking}
+                kitchenName="Delivery Partner"
+                docsReady={steps.vehicle}
+                type="delivery" // 🔥 VERY IMPORTANT
               />
             </div>
           </div>
@@ -167,6 +149,9 @@ export default function CookALogin() {
     </div>
   );
 }
+
+/* COMPONENTS */
+
 function ProgressBar({ completed }) {
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 mt-8">
@@ -175,11 +160,10 @@ function ProgressBar({ completed }) {
       </h3>
 
       <div className="relative flex justify-between items-center">
-        {/* progress line */}
         <div className="absolute top-4 left-0 w-full h-1 bg-gray-200"></div>
 
         <div
-          className="absolute top-4 left-0 h-1 bg-orange-500 transition-all"
+          className="absolute top-4 left-0 h-1 bg-blue-500 transition-all"
           style={{ width: `${(completed / 4) * 100}%` }}
         ></div>
 
@@ -189,7 +173,7 @@ function ProgressBar({ completed }) {
             className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold z-10
               ${
                 step <= completed
-                  ? "bg-orange-500 text-white"
+                  ? "bg-blue-500 text-white"
                   : "bg-gray-200 text-gray-500"
               }
             `}
@@ -201,11 +185,12 @@ function ProgressBar({ completed }) {
     </div>
   );
 }
+
 function ChecklistCard({ title, desc, done, active, button, onClick }) {
   return (
     <div
       className={`bg-white rounded-xl p-6 shadow-sm mt-4 border
-        ${active ? "border-orange-300" : "border-gray-200"}
+        ${active ? "border-blue-300" : "border-gray-200"}
       `}
     >
       <div className="flex justify-between items-center">
@@ -219,7 +204,7 @@ function ChecklistCard({ title, desc, done, active, button, onClick }) {
         ) : (
           <button
             onClick={onClick}
-            className="bg-orange-500 text-white px-5 py-2 rounded-full text-sm"
+            className="bg-blue-500 text-white px-5 py-2 rounded-full text-sm"
           >
             {button}
           </button>
@@ -228,10 +213,11 @@ function ChecklistCard({ title, desc, done, active, button, onClick }) {
     </div>
   );
 }
+
 function HelpSection() {
   return (
     <section className="mt-12">
-      <h3 className="font-semibold mb-4">Need a Helping Hand?</h3>
+      <h3 className="font-semibold mb-4">Need Help?</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {["Community", "Video Guide", "Support Chat"].map((label) => (
@@ -241,7 +227,7 @@ function HelpSection() {
           >
             <div className="text-2xl mb-2">💬</div>
             <h4 className="font-semibold">{label}</h4>
-            <button className="text-orange-500 text-sm mt-2 underline">
+            <button className="text-blue-500 text-sm mt-2 underline">
               Learn More
             </button>
           </div>
@@ -250,16 +236,17 @@ function HelpSection() {
     </section>
   );
 }
+
 function Testimonial() {
   return (
-    <section className="mt-12 bg-[#F2DED3] rounded-xl p-8 text-center">
+    <section className="mt-12 bg-[#DCEBFF] rounded-xl p-8 text-center">
       <h3 className="font-semibold">You're in great company!</h3>
 
       <p className="text-gray-700 mt-3 italic">
-        “Joining MayBhojan changed my family’s life.”
+        “This platform helped me earn while studying.”
       </p>
 
-      <p className="text-sm mt-2">— Sunita Sharma, Top Partner since 2023</p>
+      <p className="text-sm mt-2">— Rahul Patil, Delivery Partner</p>
     </section>
   );
 }

@@ -1,66 +1,211 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function StartAuditCTA({
   kitchenName = "Your Kitchen",
   docsReady = false,
   onSubmit,
 }) {
-  const [openConfirm, setOpenConfirm] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [applied, setApplied] = useState(false);
   const [refId, setRefId] = useState(null);
   const [showMissing, setShowMissing] = useState(false);
 
-  const startVerification = async () => {
+  const user = JSON.parse(localStorage.getItem("maybhojan_user"));
+  const type = user?.role; // or user?.type depending on your structure
+  const [status, setStatus] = useState(null);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    function checkStatus() {
+      const requests =
+        JSON.parse(localStorage.getItem("verification_requests")) || [];
+      const existing = requests.find((r) => r.email === user?.email);
+
+      // ✅ Check approved
+      const stepsKey =
+        type === "delivery"
+          ? `delivery_onboarding_steps_${user?.email}`
+          : `cook_onboarding_steps_${user?.email}`;
+      const steps = JSON.parse(localStorage.getItem(stepsKey)) || {};
+
+      if (steps.audit === true) {
+        setStatus("approved");
+        return;
+      }
+
+      if (existing) {
+        setStatus(existing.status);
+        setRefId(existing.refId);
+        setMessage(existing.message); // 🔥 ADD THIS
+      }
+    }
+
+    checkStatus();
+
+    window.addEventListener("storage", checkStatus);
+
+    return () => window.removeEventListener("storage", checkStatus);
+  }, []);
+
+  const applyForVerification = () => {
     if (!docsReady) {
       setShowMissing(true);
       return;
     }
 
-    setSubmitting(true);
+    const requests =
+      JSON.parse(localStorage.getItem("verification_requests")) || [];
 
-    // simulate backend call
-    setTimeout(() => {
-      const ref = "MBV-" + Math.floor(100 + Math.random() * 900);
-      setRefId(ref);
-      setSubmitted(true);
-      setSubmitting(false);
-      setOpenConfirm(false);
+    const ref = "MBV-" + Math.floor(100 + Math.random() * 900);
 
-      if (onSubmit) onSubmit(ref);
-    }, 1200);
+    const newRequest = {
+      email: user.email,
+      name: kitchenName,
+      owner: user.name || "Home Chef",
+      city: user.city || "Unknown",
+      refId: ref,
+      status: "pending",
+    };
+
+    requests.push(newRequest);
+
+    localStorage.setItem("verification_requests", JSON.stringify(requests));
+
+    setApplied(true);
+    setRefId(ref);
   };
+  if (status === "rejected") {
+    return (
+      <div className="bg-red-50 border border-red-300 rounded-xl p-5 text-sm space-y-3">
+        <p className="text-red-700 font-semibold">
+          ❌ Your verification was rejected
+        </p>
 
-  // ---------- SUBMITTED STATE ----------
-  if (submitted) {
+        <p className="text-gray-600 text-sm">
+          Please update your details and reapply.
+        </p>
+
+        <button
+          onClick={handleReapply}
+          className="bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold"
+        >
+          🔁 Reapply
+        </button>
+      </div>
+    );
+  }
+
+  if (status === "pending") {
+    return (
+      <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-5 text-sm">
+        ⏳ Pending Admin Approval (Ref: {refId})
+      </div>
+    );
+  }
+
+  if (status === "approved") {
+    return (
+      <div className="bg-green-50 border border-green-300 rounded-xl p-5 text-sm">
+        ✅ Your kitchen is verified!
+      </div>
+    );
+  }
+  if (status === "info_required") {
+    return (
+      <div className="bg-orange-50 border border-orange-300 rounded-xl p-5 text-sm space-y-3">
+        <p className="text-orange-700 font-semibold">
+          ℹ Additional Information Required
+        </p>
+
+        <p className="text-gray-600 text-sm">
+          {message || "Please update your details and resubmit."}
+        </p>
+
+        <button
+          onClick={handleResubmit}
+          className="bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold"
+        >
+          🔁 Resubmit
+        </button>
+      </div>
+    );
+  }
+  // ✅ If already applied
+  if (applied) {
     return (
       <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-5 text-sm">
         <div className="flex justify-between items-center">
           <span className="font-semibold text-yellow-800">
-            Under review
+            ⏳ Pending Admin Approval
           </span>
-          <span className="text-xs text-gray-600">
-            Ref: {refId}
-          </span>
+          <span className="text-xs text-gray-600">Ref: {refId}</span>
         </div>
 
         <p className="mt-2 text-gray-700">
-          Submitted just now • Expected review within 48 hours
+          Your request has been sent. Admin will review it soon.
         </p>
       </div>
     );
   }
 
+  function handleReapply() {
+    const requests =
+      JSON.parse(localStorage.getItem("verification_requests")) || [];
+
+    // remove old rejected request
+    const filtered = requests.filter((r) => r.email !== user?.email);
+
+    // create new request
+    const ref = "MBV-" + Math.floor(100 + Math.random() * 900);
+
+    const newRequest = {
+      email: user.email,
+      name: kitchenName,
+      owner: user.name || "Home Chef",
+      city: user.city || "Unknown",
+      refId: ref,
+      status: "pending",
+    };
+
+    filtered.push(newRequest);
+
+    localStorage.setItem("verification_requests", JSON.stringify(filtered));
+
+    setStatus("pending");
+    setRefId(ref);
+
+    // 🔥 notify instantly
+    window.dispatchEvent(new Event("verificationUpdated"));
+  }
+
+  function handleResubmit() {
+    const requests =
+      JSON.parse(localStorage.getItem("verification_requests")) || [];
+
+    const updated = requests.map((r) => {
+      if (r.email === user?.email) {
+        return {
+          ...r,
+          status: "pending",
+          message: "", // clear old message
+        };
+      }
+      return r;
+    });
+
+    localStorage.setItem("verification_requests", JSON.stringify(updated));
+
+    setStatus("pending");
+
+    window.dispatchEvent(new Event("verificationUpdated"));
+  }
   return (
     <>
-      {/* CTA */}
+      {/* APPLY BUTTON */}
       <button
-        aria-label={`Start verification for ${kitchenName}`}
-        onClick={() => setOpenConfirm(true)}
+        onClick={applyForVerification}
         disabled={!docsReady}
         className={`
           w-full h-14 rounded-xl font-semibold text-white text-lg
-          shadow-[0_8px_20px_rgba(224,122,110,0.06)]
           flex items-center justify-center gap-3
           transition
           ${
@@ -70,55 +215,27 @@ export default function StartAuditCTA({
           }
         `}
       >
-        🛡 Start verification
+        📩 Apply for Verification
       </button>
 
       {!docsReady && (
         <p className="text-sm text-gray-500 mt-2">
-          Please upload required documents to continue.
+          Please complete previous steps first.
         </p>
-      )}
-
-      {/* CONFIRM MODAL */}
-      {openConfirm && (
-        <Modal
-          title={`Start verification for ${kitchenName}?`}
-          onClose={() => setOpenConfirm(false)}
-        >
-          <p className="text-gray-600">
-            This will submit your documents to our review team.
-            They may ask for clearer photos or a short call.
-            You’ll receive an update within 48 hours.
-          </p>
-
-          <div className="flex gap-3 mt-6">
-            <button
-              onClick={startVerification}
-              disabled={submitting}
-              className="flex-1 bg-[#F5A87A] text-white py-3 rounded-xl font-semibold"
-            >
-              {submitting ? "Submitting…" : "Yes, start verification"}
-            </button>
-
-            <button
-              onClick={() => setOpenConfirm(false)}
-              className="flex-1 border py-3 rounded-xl"
-            >
-              Cancel
-            </button>
-          </div>
-        </Modal>
       )}
 
       {/* MISSING DOCS */}
       {showMissing && (
-        <Modal title="Documents missing" onClose={() => setShowMissing(false)}>
+        <Modal
+          title="Requirements not met"
+          onClose={() => setShowMissing(false)}
+        >
           <p className="text-gray-600">
-            Please upload ID proof and kitchen photos before starting verification.
+            Please complete all steps (especially banking) before applying.
           </p>
 
           <button className="w-full mt-5 bg-[#F5A87A] text-white py-3 rounded-xl font-semibold">
-            Upload now
+            Okay
           </button>
         </Modal>
       )}
@@ -127,17 +244,13 @@ export default function StartAuditCTA({
 }
 
 /////////////////////////
-// GENERIC MODAL
+// MODAL
 /////////////////////////
 
 function Modal({ title, children, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div
-        role="dialog"
-        aria-modal="true"
-        className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl"
-      >
+      <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
         <h2 className="font-bold text-xl mb-4">{title}</h2>
         {children}
 

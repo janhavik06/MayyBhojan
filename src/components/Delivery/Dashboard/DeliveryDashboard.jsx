@@ -2,17 +2,21 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { getUser } from "../../../utils/getUser";
+
 export default function DeliveryDashboard() {
 
   const navigate = useNavigate();
 
   const [orders, setOrders] = useState([]);
   const [toast, setToast] = useState(null);
-const user = getUser();
-const partnerId = user?.id;
+
+  const user = getUser();
+  const partnerId = user?.id;
+
   const API = "http://localhost:8080/api/delivery";
 
   /* LOAD AVAILABLE ORDERS */
+
   useEffect(() => {
 
     loadOrders();
@@ -32,10 +36,9 @@ const partnerId = user?.id;
       const res = await axios.get(`${API}/orders`);
 
       const mapped = res.data.map((o) => ({
-
         id: o.id,
 
-        kitchen: "Homemaker Kitchen", // temporary hardcoded
+        kitchen: o.kitchenName || "Homemaker Kitchen",
 
         pickup:
           o.house + ", " +
@@ -48,7 +51,6 @@ const partnerId = user?.id;
         status: o.status,
 
         total: o.total
-
       }));
 
       setOrders(mapped);
@@ -62,32 +64,40 @@ const partnerId = user?.id;
   }
 
   /* ACCEPT ORDER */
+
   async function acceptOrder(order) {
 
-  try {
+    try {
 
-    await axios.put(`${API}/accept/${order.id}?partnerId=${partnerId}`);
+      await axios.put(
+        `${API}/accept/${order.id}?partnerId=${partnerId}`
+      );
 
-    setOrders(prev => prev.filter(o => o.id !== order.id));
+      setToast("Order Accepted 🚚");
 
-    setToast("Order Accepted");
+      setTimeout(() => setToast(null), 2000);
 
-    setTimeout(() => setToast(null), 2000);
+      // remove order from available list
+      setOrders(prev => prev.filter(o => o.id !== order.id));
 
-    navigate("/delivery/active");
+      // redirect to active delivery page
+      navigate("/delivery/active");
 
-  } catch (err) {
+    } catch (err) {
 
-    console.error("Accept order error", err);
+      console.error("Accept order error", err);
+
+    }
 
   }
 
-}
+  /* DECLINE ORDER */
+
   function declineOrder(orderId) {
 
     setOrders(prev => prev.filter(o => o.id !== orderId));
 
-    setToast("Order declined");
+    setToast("Order Declined");
 
     setTimeout(() => setToast(null), 2000);
 
@@ -100,6 +110,14 @@ const partnerId = user?.id;
       <h1 className="text-3xl font-bold mb-6">
         Available Deliveries
       </h1>
+
+      {orders.length === 0 && (
+
+        <p className="text-gray-500">
+          No delivery orders available right now
+        </p>
+
+      )}
 
       <div className="space-y-6">
 
@@ -135,14 +153,14 @@ const partnerId = user?.id;
 
               <button
                 onClick={() => declineOrder(o.id)}
-                className="flex-1 border border-red-400 text-red-500 py-2 rounded"
+                className="flex-1 border border-red-400 text-red-500 py-2 rounded hover:bg-red-50"
               >
                 Decline
               </button>
 
               <button
                 onClick={() => acceptOrder(o)}
-                className="flex-1 bg-orange-500 text-white py-2 rounded"
+                className="flex-1 bg-orange-500 text-white py-2 rounded hover:bg-orange-600"
               >
                 Accept Order
               </button>
@@ -155,9 +173,11 @@ const partnerId = user?.id;
 
       </div>
 
+      {/* TOAST MESSAGE */}
+
       {toast && (
 
-        <div className="fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded">
+        <div className="fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded shadow-lg">
 
           {toast}
 

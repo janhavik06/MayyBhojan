@@ -4,6 +4,8 @@ import { useFavorites } from "./Dashboard/FavoriteContext";
 import { Link, useNavigate } from "react-router-dom";
 import { getFoods } from "../../api/food";
 import { getUser } from "../../utils/getUser";
+import { HiCheckCircle } from "react-icons/hi";
+import { BsCartPlus } from "react-icons/bs";
 
 export default function CustALogin() {
 
@@ -125,7 +127,10 @@ export default function CustALogin() {
         </div>
 
         <div className="text-sm bg-gray-100 px-4 py-2 rounded-full border border-gray-200">
-          ✔ All kitchens are 100% hygiene certified
+          <div className="flex items-center gap-2">
+            <HiCheckCircle className="text-green-500" />
+            All kitchens are 100% hygiene certified
+          </div>{" "}
         </div>
 
       </div>
@@ -206,7 +211,10 @@ export default function CustALogin() {
                   }}
                   className="w-full mt-7 bg-orange-500 text-white py-3 rounded-xl font-semibold"
                 >
-                  + Add to Cart
+                  <div className="flex items-center justify-center gap-2">
+                    <BsCartPlus />
+                    Add to Cart
+                  </div>{" "}
                 </button>
 
               </div>
