@@ -1,142 +1,184 @@
+import { useState, useEffect } from "react";
 import { useCart } from "../Cart/CartContext";
 import { useNavigate } from "react-router-dom";
+import { saveAddress, getUserAddresses } from "../../api/addressApi";
+  import { getUser } from "../../utils/getUser";
 
 export default function Address() {
+
   const { total } = useCart();
   const navigate = useNavigate();
+
+
+const user = getUser();
+const userId = user?.id;
+
+  const [addresses, setAddresses] = useState([]);
+  const [selected, setSelected] = useState(null);
+
+ const [address, setAddress] = useState({
+  userId: userId,
+  fullName: "",
+  phone: "",
+  house: "",
+  area: "",
+  landmark: "",
+  pincode: "",
+  type: "HOME"
+});
+
+  useEffect(() => {
+    loadAddresses();
+  }, []);
+
+  async function loadAddresses() {
+    try {
+      const res = await getUserAddresses(userId);
+      setAddresses(res.data);
+    } catch (err) {
+      console.error("Load address error", err);
+    }
+  }
+
+  function handleChange(e) {
+    setAddress({
+      ...address,
+      [e.target.name]: e.target.value
+    });
+  }
+
+  async function handleSubmit() {
+
+    try {
+
+      const res = await saveAddress(address);
+
+      setSelected(res.data.id);
+
+      navigate("/payment", {
+        state: { addressId: res.data.id }
+      });
+
+    } catch (err) {
+      console.error("Address save error", err);
+    }
+
+  }
+
+  function continueWithAddress() {
+
+    if(!selected){
+      alert("Select an address");
+      return;
+    }
+
+    navigate("/payment", {
+      state: { addressId: selected }
+    });
+
+  }
 
   return (
     <div className="min-h-screen bg-[#F6F2EF]">
 
-      {/* STEP TRACKER */}
-      <div className="flex justify-center gap-20 py-8 text-sm">
-
-        {[
-          { id: 1, label: "Cart" },
-          { id: 2, label: "Address" },
-          { id: 3, label: "Payment" },
-          { id: 4, label: "Confirm" },
-        ].map((s) => (
-          <div key={s.id} className="flex flex-col items-center">
-
-            <div
-              className={`w-10 h-10 flex items-center justify-center rounded-full border font-semibold
-              ${
-                s.id === 2
-                  ? "bg-orange-500 text-white border-orange-500"
-                  : s.id < 2
-                  ? "bg-green-100 text-green-600 border-green-300"
-                  : "bg-gray-100 text-gray-500"
-              }`}
-            >
-              {s.id}
-            </div>
-
-            <span
-              className={`mt-2 ${
-                s.id === 2 ? "text-orange-500 font-semibold" : "text-gray-500"
-              }`}
-            >
-              {s.label}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* MAIN */}
       <div className="max-w-7xl mx-auto px-10 grid grid-cols-1 lg:grid-cols-3 gap-10">
 
-        {/* LEFT FORM */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border shadow-sm p-8">
+        <div className="lg:col-span-2">
 
-          <h1 className="text-3xl font-bold">
-            Where should we deliver?
-          </h1>
+          {/* EXISTING ADDRESSES */}
+          <div className="bg-white rounded-2xl border p-6 mb-6">
 
-          <p className="text-gray-500 mt-2">
-            Enter your delivery details for a hot and fresh meal experience.
-          </p>
+            <h2 className="text-xl font-bold mb-4">
+              Saved Addresses
+            </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+            {addresses.map(a => (
 
-            <input placeholder="Full Name" className="border rounded-xl px-4 py-3" />
-            <input placeholder="Mobile Number" className="border rounded-xl px-4 py-3" />
+              <div
+                key={a.id}
+                onClick={() => setSelected(a.id)}
+                className={`p-4 border rounded-xl cursor-pointer mb-3
+                ${selected === a.id ? "border-orange-500 bg-orange-50" : ""}`}
+              >
 
-            <input placeholder="Flat / House No." className="border rounded-xl px-4 py-3" />
-            <input placeholder="Area / Locality" className="border rounded-xl px-4 py-3" />
+                <p className="font-semibold">{a.fullName}</p>
+                <p>{a.house}, {a.area}</p>
+                <p>{a.landmark}</p>
+                <p>{a.pincode}</p>
 
-            <input placeholder="Landmark" className="border rounded-xl px-4 py-3" />
-            <input placeholder="Pincode" className="border rounded-xl px-4 py-3 border-red-300" />
+              </div>
 
-          </div>
+            ))}
 
-          {/* Save Address */}
-          <div className="mt-8">
-            <p className="font-semibold mb-3">Save Address As:</p>
+            {addresses.length > 0 && (
 
-            <div className="flex gap-4">
-              <button className="bg-orange-500 text-white px-6 py-2 rounded-xl">
-                Home
+              <button
+                onClick={continueWithAddress}
+                className="w-full mt-4 bg-orange-500 text-white py-3 rounded-xl"
+              >
+                Continue with Selected Address
               </button>
-              <button className="border px-6 py-2 rounded-xl">Work</button>
-              <button className="border px-6 py-2 rounded-xl">Other</button>
+
+            )}
+
+          </div>
+
+          {/* ADD NEW ADDRESS */}
+          <div className="bg-white rounded-2xl border p-8">
+
+            <h1 className="text-2xl font-bold">
+              Add New Address
+            </h1>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+
+              <input name="fullName" placeholder="Full Name"
+              onChange={handleChange} className="border rounded-xl px-4 py-3"/>
+
+              <input name="phone" placeholder="Mobile Number"
+              onChange={handleChange} className="border rounded-xl px-4 py-3"/>
+
+              <input name="house" placeholder="Flat / House No."
+              onChange={handleChange} className="border rounded-xl px-4 py-3"/>
+
+              <input name="area" placeholder="Area"
+              onChange={handleChange} className="border rounded-xl px-4 py-3"/>
+
+              <input name="landmark" placeholder="Landmark"
+              onChange={handleChange} className="border rounded-xl px-4 py-3"/>
+
+              <input name="pincode" placeholder="Pincode"
+              onChange={handleChange} className="border rounded-xl px-4 py-3"/>
+
             </div>
+
+            <button
+              onClick={handleSubmit}
+              className="w-full mt-8 bg-orange-500 text-white py-4 rounded-xl"
+            >
+              Save & Continue
+            </button>
+
           </div>
-
-          <div className="mt-6 border border-dashed rounded-xl p-4 text-sm text-gray-600">
-            Save this address for future cravings
-          </div>
-
-          {/* Continue */}
-          <button
-            onClick={() => navigate("/payment")}
-            className="w-full mt-10 bg-orange-500 text-white py-4 rounded-xl font-semibold text-lg"
-          >
-            Continue to Payment →
-          </button>
-
-          <p className="text-xs text-gray-500 mt-3 text-center">
-            Prices include all local taxes and delivery fees.
-          </p>
 
         </div>
 
-        {/* RIGHT SUMMARY */}
-        <div className="bg-white rounded-2xl border shadow-sm p-6 h-fit">
+        {/* ORDER SUMMARY */}
+        <div className="bg-white rounded-2xl border p-6 h-fit">
 
           <h2 className="font-semibold text-lg mb-4">
             Order Summary
           </h2>
 
-          <div className="space-y-2 text-sm">
-
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>₹{total}</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span>Delivery Fee</span>
-              <span>FREE</span>
-            </div>
-
-            <hr className="my-3" />
-
-            <div className="flex justify-between font-bold text-lg text-orange-500">
-              <span>Total Pay</span>
-              <span>₹{total}</span>
-            </div>
-
-          </div>
-
-          <div className="mt-6 flex gap-3 text-sm text-gray-600">
-            <div className="border rounded-xl px-4 py-2">Secure Payments</div>
-            <div className="border rounded-xl px-4 py-2">Live Tracking</div>
+          <div className="flex justify-between">
+            <span>Total Pay</span>
+            <span>₹{total}</span>
           </div>
 
         </div>
 
       </div>
+
     </div>
   );
 }

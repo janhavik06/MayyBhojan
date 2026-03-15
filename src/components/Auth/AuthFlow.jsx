@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
+const API = "http://localhost:8080/api/auth";
+
 const roles = [
   { id: "customer", label: "Customer", desc: "Order food" },
   { id: "cook", label: "Homemaker", desc: "Cook for community" },
@@ -10,131 +14,99 @@ const roles = [
 export default function AuthFlow({ mode = "login", setLoggedIn }) {
   const navigate = useNavigate();
 
-  const [role, setRole] = useState("customer");
+  // ROLE should not be pre-selected
+  const [role, setRole] = useState("");
 
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [error, setError] = useState("");
 
+  const roleMap = {
+    customer: "CUSTOMER",
+    cook: "HOMEMAKER",
+    delivery: "DELIVERY",
+    admin: "ADMIN",
+  };
+
   /* ================= SIGNUP ================= */
-  // Email validation
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.com$/;
-    return emailRegex.test(email);
+
+  const handleSignup = async () => {
+    if (!role) {
+      setError("Please select a role");
+      return;
+    }
+
+    try {
+      const backendRole = roleMap[role];
+
+      const payload = {
+        name,
+        phone,
+        email,
+        password,
+        role: backendRole,
+      };
+
+      let url = "";
+
+      if (backendRole === "CUSTOMER") url = `${API}/signup/customer`;
+      if (backendRole === "HOMEMAKER") url = `${API}/signup/homemaker`;
+      if (backendRole === "DELIVERY") url = `${API}/signup/delivery`;
+      if (backendRole === "ADMIN") url = `${API}/signup/admin`;
+
+      await axios.post(url, payload);
+
+      alert("Signup successful. Please login.");
+
+      navigate("/login");
+    } catch (err) {
+      console.error(err);
+      setError("Signup failed");
+    }
   };
 
-  // Password validation
-  const validatePassword = (password) => {
-    const passwordRegex =
-      /^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{8,}$/;
-    return passwordRegex.test(password);
-  };
-
-  // Phone validation
-  const validatePhone = (phone) => {
-    const phoneRegex = /^[0-9]{10}$/;
-    return phoneRegex.test(phone);
-  };
-  const handleSignup = () => {
-    if (!phone || !email || !password) {
-      setError("Please fill all fields");
-      return;
-    }
-
-    if (!validatePhone(phone)) {
-      setError("Phone number must be exactly 10 digits");
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      setError("Email must contain @ and end with .com");
-      return;
-    }
-
-    if (!validatePassword(password)) {
-      setError(
-        "Password must be 8+ characters, include a number and special character",
-      );
-      return;
-    }
-
-    const newUser = {
-      role,
-      phone,
-      email,
-      password,
-    };
-
-    // get existing users
-    const users = JSON.parse(localStorage.getItem("maybhojan_users")) || [];
-
-    // check if email already exists
-    const existingUser = users.find((u) => u.email === email);
-
-    if (existingUser) {
-      setError("Account already exists. Please login.");
-      return;
-    }
-
-    // add new user
-    users.push(newUser);
-
-    localStorage.setItem("maybhojan_users", JSON.stringify(users));
-
-    // 🔥 RESET OLD DATA (IMPORTANT)
-    localStorage.removeItem(`cook_onboarding_steps_${email}`);
-    localStorage.removeItem(`delivery_onboarding_steps_${email}`);
-
-    navigate("/login");
-  };
   /* ================= LOGIN ================= */
-  const handleLogin = () => {
-    const users = JSON.parse(localStorage.getItem("maybhojan_users")) || [];
 
-    const user = users.find(
-      (u) => u.email === email && u.password === password && u.role === role,
-    );
-
-    if (!user) {
-      setError("Invalid email, password or role");
+  const handleLogin = async () => {
+    if (!role) {
+      setError("Please select a role");
       return;
     }
 
-    /* store logged in user */
-    localStorage.setItem("maybhojan_user", JSON.stringify(user));
+    try {
+      const res = await axios.post(`${API}/login`, {
+        email,
+        password,
+      });
 
-    if (setLoggedIn) setLoggedIn(true);
+      const user = res.data;
 
-    if (user.role === "customer") navigate("/custalogin");
-    if (user.role === "cook") {
-      const stepsKey = `cook_onboarding_steps_${user.email}`;
-      const steps = JSON.parse(localStorage.getItem(stepsKey)) || {};
-
-      if (steps?.audit == true) {
-        navigate("/cook"); // ✅ approved
-      } else {
-        navigate("/cook/login"); // ✅ onboarding / pending
+      if (user.role !== roleMap[role]) {
+        setError("Wrong role selected");
+        return;
       }
-    }
-    if (user.role === "delivery") {
-      const stepsKey = `delivery_onboarding_steps_${user.email}`;
-      const steps = JSON.parse(localStorage.getItem(stepsKey));
 
-      if (!steps || steps.audit !== true) {
-        navigate("/delivery"); // ✅ onboarding
-      } else {
-        navigate("/delivery/dashboard"); // ✅ approved
-      }
-    }
+      localStorage.setItem("user", JSON.stringify(user));
 
-    if (user.role === "admin") navigate("/admin");
+      if (setLoggedIn) setLoggedIn(true);
+
+      if (user.role === "CUSTOMER") navigate("/custalogin");
+      if (user.role === "HOMEMAKER") navigate("/cook/login");
+      if (user.role === "DELIVERY") navigate("/delivery");
+      if (user.role === "ADMIN") navigate("/admin");
+    } catch (err) {
+      console.error(err);
+      setError("Invalid email or password");
+    }
   };
 
   return (
     <div className="min-h-screen flex">
       {/* LEFT SIDE */}
+
       <div className="w-full md:w-1/2 bg-white flex items-center justify-center p-10">
         <div className="w-full max-w-md">
           <h1 className="text-2xl font-bold text-orange-500">MayBhojan</h1>
@@ -144,37 +116,51 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
           </h2>
 
           {/* ROLE SELECTOR */}
-          {/* ROLE SELECTOR */}
+
           <div className="grid grid-cols-2 gap-3 mt-8">
             {roles.map((r) => (
               <button
                 key={r.id}
                 onClick={() => setRole(r.id)}
                 className={`p-4 rounded-xl border text-left
-      ${
-        role === r.id
-          ? "bg-orange-100 border-orange-400"
-          : "bg-gray-50 hover:bg-gray-100"
-      }`}
+                ${
+                  role === r.id
+                    ? "bg-orange-100 border-orange-400"
+                    : "bg-gray-50 hover:bg-gray-100"
+                }`}
               >
                 <p className="font-semibold">{r.label}</p>
+
                 <p className="text-xs text-gray-500">{r.desc}</p>
               </button>
             ))}
           </div>
 
-          {/* PHONE (Signup only) */}
+          {/* NAME (Signup only) */}
+
+          {mode === "signup" && (
+            <input
+              placeholder="Full Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full mt-6 px-4 py-4 border rounded-xl"
+            />
+          )}
+
+          {/* PHONE */}
+
           {mode === "signup" && (
             <input
               placeholder="Phone Number"
               value={phone}
               maxLength={10}
-              onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-              className="w-full mt-6 px-4 py-4 border rounded-xl"
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full mt-4 px-4 py-4 border rounded-xl"
             />
           )}
 
           {/* EMAIL */}
+
           <input
             placeholder="Email"
             value={email}
@@ -183,6 +169,7 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
           />
 
           {/* PASSWORD */}
+
           <input
             type="password"
             placeholder="Password"
@@ -194,6 +181,7 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
           {/* BUTTON */}
+
           {mode === "signup" ? (
             <button
               onClick={handleSignup}
@@ -209,23 +197,7 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
               Login
             </button>
           )}
-          <div className="text-center mt-4">
-            {mode === "login" ? (
-              <p className="text-sm text-gray-600">
-                Don’t have an account?{" "}
-                <Link to="/signup" className="text-orange-500 font-semibold">
-                  Sign up
-                </Link>
-              </p>
-            ) : (
-              <p className="text-sm text-gray-600">
-                Already have an account?{" "}
-                <Link to="/login" className="text-orange-500 font-semibold">
-                  Login
-                </Link>
-              </p>
-            )}
-          </div>
+
           <p className="text-xs text-gray-500 text-center mt-8">
             We keep your info private.
           </p>
@@ -233,6 +205,7 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
       </div>
 
       {/* RIGHT SIDE */}
+
       <div
         className="hidden md:flex w-1/2
         bg-gradient-to-br from-[#F6E6DC] via-[#F1DCD1] to-[#E9CFC2]
