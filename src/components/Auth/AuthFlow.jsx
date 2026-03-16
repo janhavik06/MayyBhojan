@@ -64,8 +64,6 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
       console.error(err);
       setError("Signup failed");
     }
-
-    
   };
 
   /* ================= LOGIN ================= */
