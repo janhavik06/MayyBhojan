@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function CookIdentityVerification() {
   const navigate = useNavigate();
@@ -17,48 +18,40 @@ export default function CookIdentityVerification() {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  async function handleSubmit() {
-    if (!form.name || !form.phone || !form.address) {
-      setError("Please fill all required fields");
-      return;
-    }
+ async function handleSubmit() {
 
-    try {
-      // TEMP userId (later will come from login)
-      const userId = 1;
-
-      const response = await fetch(
-        "http://localhost:8080/api/homemaker/identity",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: userId,
-            fullName: form.name,
-            phone: form.phone,
-            dob: form.dob,
-            address: form.address,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to save identity");
-      }
-
-      console.log("Identity saved successfully");
-
-      // go to next onboarding step
-      navigate("/cook/verification");
-
-    } catch (error) {
-      console.error(error);
-      setError("Failed to save identity");
-    }
+  if (!form.name || !form.phone || !form.address) {
+    setError("Please fill all required fields");
+    return;
   }
 
+
+   try {
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  const response = await axios.post(
+    "http://localhost:8080/api/homemaker/identity",
+    {
+      userId: user.id,
+      fullName: form.name,
+      phone: form.phone,
+      dob: form.dob,
+      address: form.address
+    }
+  );
+
+  console.log(response.data);
+
+  navigate("/cook/verification");
+
+} catch (error) {
+
+  console.error(error);
+  setError("Failed to save identity");
+
+}
+ }
   return (
     <div className="min-h-screen bg-[#F6F2EF]">
       <main className="max-w-6xl mx-auto px-8 py-10 grid lg:grid-cols-[2fr_1fr] gap-10">

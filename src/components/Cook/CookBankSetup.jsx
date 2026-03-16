@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function CookBankSetup() {
   const navigate = useNavigate();
@@ -27,32 +28,63 @@ export default function CookBankSetup() {
     if (!form.consent) return "Please confirm details are correct";
     return "";
   }
-  function handleSubmit() {
-    const err = validate();
+  async function handleSubmit() {
+  const err = validate();
 
-    if (err) {
-      setError(err);
-      return;
-    }
-
-    setError("");
-    setStatus("pending");
-
-    const user = JSON.parse(localStorage.getItem("maybhojan_user"));
-    const stepsKey = `cook_onboarding_steps_${user?.email}`;
-
-    const saved = JSON.parse(localStorage.getItem(stepsKey)) || {};
-
-    localStorage.setItem(stepsKey, JSON.stringify({ ...saved, banking: true }));
-
-    setTimeout(() => {
-      setStatus("verified");
-
-      setTimeout(() => {
-        navigate("/cook/login"); // ✅ go back to onboarding page
-      }, 1200);
-    }, 1500);
+  if (err) {
+    setError(err);
+    return;
   }
+
+  setError("");
+  setStatus("pending");
+
+  try {
+
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    const params = new URLSearchParams();
+    params.append("userId", user.id);
+    params.append("accountHolderName", form.name);
+    params.append("accountNumber", form.account);
+    params.append("ifscCode", form.ifsc);
+
+    await axios.post(
+  "http://localhost:8080/api/homemaker/bank",
+  params
+);
+
+/* update onboarding step in localStorage */
+
+const userData = JSON.parse(localStorage.getItem("user"));
+
+if (userData) {
+
+  const stepsKey = `cook_onboarding_steps_${userData.email}`;
+
+  const savedSteps =
+    JSON.parse(localStorage.getItem(stepsKey)) || {};
+
+  savedSteps.banking = true;
+
+  localStorage.setItem(
+    stepsKey,
+    JSON.stringify(savedSteps)
+  );
+
+}
+
+setStatus("verified");
+
+setTimeout(() => {
+  navigate("/cook/login");
+}, 1200);
+  } catch (error) {
+    console.error(error);
+    setError("Failed to save bank details");
+    setStatus("idle");
+  }
+}
   return (
     <div className="min-h-screen bg-[#F6F2EF]">
       <main className="max-w-6xl mx-auto px-8 py-10 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-10">

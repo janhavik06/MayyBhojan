@@ -8,7 +8,6 @@ const roles = [
   { id: "customer", label: "Customer", desc: "Order food" },
   { id: "cook", label: "Homemaker", desc: "Cook for community" },
   { id: "delivery", label: "Delivery Student", desc: "Deliver meals" },
-  { id: "admin", label: "Admin", desc: "Platform admin" },
 ];
 
 export default function AuthFlow({ mode = "login", setLoggedIn }) {
@@ -46,8 +45,7 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
         name,
         phone,
         email,
-        password,
-        role: backendRole,
+        password
       };
 
       let url = "";
@@ -66,12 +64,17 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
       console.error(err);
       setError("Signup failed");
     }
+
+    
   };
 
   /* ================= LOGIN ================= */
 
   const handleLogin = async () => {
-    if (!role) {
+
+    const isAdmin = email === "admin@maybhojan.com";
+
+    if (!isAdmin && !role) {
       setError("Please select a role");
       return;
     }
@@ -83,6 +86,18 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
       });
 
       const user = res.data;
+
+      // Admin bypass — no role selection needed
+      if (isAdmin) {
+        if (user.role !== "ADMIN") {
+          setError("Unauthorized");
+          return;
+        }
+        localStorage.setItem("user", JSON.stringify(user));
+        if (setLoggedIn) setLoggedIn(true);
+        navigate("/admin");
+        return;
+      }
 
       if (user.role !== roleMap[role]) {
         setError("Wrong role selected");
@@ -96,7 +111,6 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
       if (user.role === "CUSTOMER") navigate("/custalogin");
       if (user.role === "HOMEMAKER") navigate("/cook/login");
       if (user.role === "DELIVERY") navigate("/delivery");
-      if (user.role === "ADMIN") navigate("/admin");
     } catch (err) {
       console.error(err);
       setError("Invalid email or password");
@@ -115,26 +129,25 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
             {mode === "login" ? "Welcome back" : "Create your account"}
           </h2>
 
-          {/* ROLE SELECTOR */}
-
+          {/* ROLE SELECTOR — hidden for admin email */}
+          {!(mode === "login" && email === "admin@maybhojan.com") && (
           <div className="grid grid-cols-2 gap-3 mt-8">
             {roles.map((r) => (
               <button
                 key={r.id}
                 onClick={() => setRole(r.id)}
                 className={`p-4 rounded-xl border text-left
-                ${
-                  role === r.id
+                ${role === r.id
                     ? "bg-orange-100 border-orange-400"
                     : "bg-gray-50 hover:bg-gray-100"
-                }`}
+                  }`}
               >
                 <p className="font-semibold">{r.label}</p>
-
                 <p className="text-xs text-gray-500">{r.desc}</p>
               </button>
             ))}
           </div>
+          )}
 
           {/* NAME (Signup only) */}
 

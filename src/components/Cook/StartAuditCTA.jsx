@@ -1,103 +1,72 @@
 import { useState, useEffect } from "react";
 
-export default function StartAuditCTA({
-  kitchenName = "Your Kitchen",
-  docsReady = false,
-  onSubmit,
-}) {
-  const [applied, setApplied] = useState(false);
-  const [refId, setRefId] = useState(null);
+export default function StartAuditCTA({ docsReady = false }) {
+
+  const [status, setStatus] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [showMissing, setShowMissing] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem("maybhojan_user"));
-  const type = user?.role; // or user?.type depending on your structure
-  const [status, setStatus] = useState(null);
-  const [message, setMessage] = useState("");
-
+  // Check current account status on load
   useEffect(() => {
-    function checkStatus() {
-      const requests =
-        JSON.parse(localStorage.getItem("verification_requests")) || [];
-      const existing = requests.find((r) => r.email === user?.email);
-
-      // ✅ Check approved
-      const stepsKey =
-        type === "delivery"
-          ? `delivery_onboarding_steps_${user?.email}`
-          : `cook_onboarding_steps_${user?.email}`;
-      const steps = JSON.parse(localStorage.getItem(stepsKey)) || {};
-
-      if (steps.audit === true) {
-        setStatus("approved");
-        return;
-      }
-
-      if (existing) {
-        setStatus(existing.status);
-        setRefId(existing.refId);
-        setMessage(existing.message); // 🔥 ADD THIS
-      }
-    }
-
-    checkStatus();
-
-    window.addEventListener("storage", checkStatus);
-
-    return () => window.removeEventListener("storage", checkStatus);
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) return;
+    if (user.accountStatus === "UNDER_REVIEW") setStatus("pending");
+    if (user.accountStatus === "ACTIVE") setStatus("approved");
+    if (user.accountStatus === "REJECTED") setStatus("rejected");
   }, []);
 
-  const applyForVerification = () => {
+  const applyForVerification = async () => {
+
     if (!docsReady) {
       setShowMissing(true);
       return;
     }
 
-    const requests =
-      JSON.parse(localStorage.getItem("verification_requests")) || [];
+    try {
 
-    const ref = "MBV-" + Math.floor(100 + Math.random() * 900);
+      setLoading(true);
 
-    const newRequest = {
-      email: user.email,
-      name: kitchenName,
-      owner: user.name || "Home Chef",
-      city: user.city || "Unknown",
-      refId: ref,
-      status: "pending",
-    };
+      const user = JSON.parse(localStorage.getItem("user"));
 
-    requests.push(newRequest);
+      if (!user) {
+        console.error("User not logged in");
+        return;
+      }
 
-    localStorage.setItem("verification_requests", JSON.stringify(requests));
+      const params = new URLSearchParams();
+      params.append("userId", user.id);
 
-    setApplied(true);
-    setRefId(ref);
+      const res = await fetch(
+        "http://localhost:8080/api/homemaker/submit",
+        {
+          method: "POST",
+          body: params
+        }
+      );
+
+      const msg = await res.text();
+      console.log(msg);
+
+      // Update localStorage so status persists on refresh
+      user.accountStatus = "UNDER_REVIEW";
+      localStorage.setItem("user", JSON.stringify(user));
+
+      setStatus("pending");
+
+    } catch (error) {
+      console.error("Submit failed", error);
+    } finally {
+      setLoading(false);
+    }
+
   };
-  if (status === "rejected") {
-    return (
-      <div className="bg-red-50 border border-red-300 rounded-xl p-5 text-sm space-y-3">
-        <p className="text-red-700 font-semibold">
-          ❌ Your verification was rejected
-        </p>
 
-        <p className="text-gray-600 text-sm">
-          Please update your details and reapply.
-        </p>
-
-        <button
-          onClick={handleReapply}
-          className="bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold"
-        >
-          🔁 Reapply
-        </button>
-      </div>
-    );
-  }
+  /* ---------- STATUS UI ---------- */
 
   if (status === "pending") {
     return (
       <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-5 text-sm">
-        ⏳ Pending Admin Approval (Ref: {refId})
+        ⏳ Pending Admin Approval
       </div>
     );
   }
@@ -109,101 +78,22 @@ export default function StartAuditCTA({
       </div>
     );
   }
-  if (status === "info_required") {
+
+  if (status === "rejected") {
     return (
-      <div className="bg-orange-50 border border-orange-300 rounded-xl p-5 text-sm space-y-3">
-        <p className="text-orange-700 font-semibold">
-          ℹ Additional Information Required
-        </p>
-
-        <p className="text-gray-600 text-sm">
-          {message || "Please update your details and resubmit."}
-        </p>
-
-        <button
-          onClick={handleResubmit}
-          className="bg-orange-500 text-white px-4 py-2 rounded-lg font-semibold"
-        >
-          🔁 Resubmit
-        </button>
-      </div>
-    );
-  }
-  // ✅ If already applied
-  if (applied) {
-    return (
-      <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-5 text-sm">
-        <div className="flex justify-between items-center">
-          <span className="font-semibold text-yellow-800">
-            ⏳ Pending Admin Approval
-          </span>
-          <span className="text-xs text-gray-600">Ref: {refId}</span>
-        </div>
-
-        <p className="mt-2 text-gray-700">
-          Your request has been sent. Admin will review it soon.
-        </p>
+      <div className="bg-red-50 border border-red-300 rounded-xl p-5 text-sm">
+        ❌ Your verification was rejected. Please update your details.
       </div>
     );
   }
 
-  function handleReapply() {
-    const requests =
-      JSON.parse(localStorage.getItem("verification_requests")) || [];
+  /* ---------- MAIN BUTTON ---------- */
 
-    // remove old rejected request
-    const filtered = requests.filter((r) => r.email !== user?.email);
-
-    // create new request
-    const ref = "MBV-" + Math.floor(100 + Math.random() * 900);
-
-    const newRequest = {
-      email: user.email,
-      name: kitchenName,
-      owner: user.name || "Home Chef",
-      city: user.city || "Unknown",
-      refId: ref,
-      status: "pending",
-    };
-
-    filtered.push(newRequest);
-
-    localStorage.setItem("verification_requests", JSON.stringify(filtered));
-
-    setStatus("pending");
-    setRefId(ref);
-
-    // 🔥 notify instantly
-    window.dispatchEvent(new Event("verificationUpdated"));
-  }
-
-  function handleResubmit() {
-    const requests =
-      JSON.parse(localStorage.getItem("verification_requests")) || [];
-
-    const updated = requests.map((r) => {
-      if (r.email === user?.email) {
-        return {
-          ...r,
-          status: "pending",
-          message: "", // clear old message
-        };
-      }
-      return r;
-    });
-
-    localStorage.setItem("verification_requests", JSON.stringify(updated));
-
-    setStatus("pending");
-
-    window.dispatchEvent(new Event("verificationUpdated"));
-  }
   return (
     <>
-      {/* APPLY BUTTON */}
       <button
         onClick={applyForVerification}
-        disabled={!docsReady}
+        disabled={!docsReady || loading}
         className={`
           w-full h-14 rounded-xl font-semibold text-white text-lg
           flex items-center justify-center gap-3
@@ -215,7 +105,7 @@ export default function StartAuditCTA({
           }
         `}
       >
-        📩 Apply for Verification
+        {loading ? "Submitting..." : "📩 Apply for Verification"}
       </button>
 
       {!docsReady && (
@@ -224,7 +114,8 @@ export default function StartAuditCTA({
         </p>
       )}
 
-      {/* MISSING DOCS */}
+      {/* ---------- MODAL ---------- */}
+
       {showMissing && (
         <Modal
           title="Requirements not met"
@@ -234,24 +125,33 @@ export default function StartAuditCTA({
             Please complete all steps (especially banking) before applying.
           </p>
 
-          <button className="w-full mt-5 bg-[#F5A87A] text-white py-3 rounded-xl font-semibold">
+          <button
+            onClick={() => setShowMissing(false)}
+            className="w-full mt-5 bg-[#F5A87A] text-white py-3 rounded-xl font-semibold"
+          >
             Okay
           </button>
+
         </Modal>
       )}
+
     </>
   );
 }
 
-/////////////////////////
-// MODAL
-/////////////////////////
+/* ---------- MODAL COMPONENT ---------- */
 
 function Modal({ title, children, onClose }) {
+
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
       <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
-        <h2 className="font-bold text-xl mb-4">{title}</h2>
+
+        <h2 className="font-bold text-xl mb-4">
+          {title}
+        </h2>
+
         {children}
 
         <button
@@ -260,7 +160,10 @@ function Modal({ title, children, onClose }) {
         >
           Close
         </button>
+
       </div>
+
     </div>
   );
+
 }
