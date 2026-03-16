@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { getUser } from "../../utils/getUser";
+
 export default function VehicleSetup() {
   const navigate = useNavigate();
 
@@ -16,39 +15,23 @@ export default function VehicleSetup() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  async function handleSubmit() {
+  function handleSubmit() {
+    if (!form.vehicleType || !form.number) {
+      setError("Please fill all fields");
+      return;
+    }
 
-  if (!form.vehicleType || !form.number) {
-    setError("Please fill all fields");
-    return;
-  }
+    localStorage.setItem("delivery_vehicle", JSON.stringify(form));
 
-  try {
+    const user = JSON.parse(localStorage.getItem("maybhojan_user"));
+    const stepsKey = `delivery_onboarding_steps_${user.email}`;
 
-    const user = getUser();
+    const saved = JSON.parse(localStorage.getItem(stepsKey)) || {};
 
-    await axios.put(
-      "http://localhost:8080/api/delivery-partner/vehicle",
-      null,
-      {
-        params: {
-          userId: user.id,
-          vehicleType: form.vehicleType,
-          vehicleNumber: form.number
-        }
-      }
-    );
+    localStorage.setItem(stepsKey, JSON.stringify({ ...saved, vehicle: true }));
 
     navigate("/delivery/onboarding");
-
-  } catch (err) {
-
-    console.error(err);
-    setError("Vehicle setup failed");
-
   }
-
-}
 
   return (
     <div className="min-h-screen bg-[#F6F2EF]">

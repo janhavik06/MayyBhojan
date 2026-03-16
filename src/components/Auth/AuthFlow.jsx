@@ -32,65 +32,6 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
 
   /* ================= SIGNUP ================= */
 
-<<<<<<< HEAD
-  /* ================= SIGNUP ================= */
-
-const handleSignup = async () => {
-
-  if (!role) {
-    setError("Please select a role");
-    return;
-  }
-
-  try {
-
-    const backendRole = roleMap[role];
-
-    const payload = {
-      name,
-      phone,
-      email,
-      password,
-      role: backendRole
-    };
-
-    let url = "";
-
-    if (backendRole === "CUSTOMER") url = `${API}/signup/customer`;
-    if (backendRole === "HOMEMAKER") url = `${API}/signup/homemaker`;
-    if (backendRole === "DELIVERY") url = `${API}/signup/delivery`;
-
-    const res = await axios.post(url, payload);
-
-    const user = res.data;
-
-    localStorage.setItem("maybhojan_user", JSON.stringify(user));
-
-    alert("Signup successful");
-
-    /* redirect based on role */
-
-    if (backendRole === "DELIVERY") {
-      navigate("/delivery/onboarding");
-    }
-
-    else if (backendRole === "HOMEMAKER") {
-      navigate("/cook/verification");
-    }
-
-    else {
-      navigate("/");
-    }
-
-  } catch (err) {
-
-    console.error(err);
-    setError("Signup failed");
-
-  }
-
-};
-=======
   const handleSignup = async () => {
     if (!role) {
       setError("Please select a role");
@@ -124,7 +65,6 @@ const handleSignup = async () => {
       setError("Signup failed");
     }
   };
->>>>>>> cbdde50348b247e86302d49e595a73c3b16fe4e2
 
   /* ================= LOGIN ================= */
 
