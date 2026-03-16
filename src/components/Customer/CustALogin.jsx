@@ -39,6 +39,7 @@ export default function CustALogin() {
           price: food.price,
           time: food.time,
           veg: food.category === "Veg",
+          image: food.image,
         }));
 
         setMeals(foods);
@@ -81,6 +82,11 @@ export default function CustALogin() {
         {meals.slice(0, visible).map((meal) => (
           <Link to={`/food/${meal.id}`} key={meal.id}>
             <div className="bg-white rounded-2xl border border-[#E5DAD3] shadow-sm hover:shadow-md hover:-translate-y-1 transition flex flex-col h-full">
+              <img
+                src={`http://localhost:8080/${meal.image}`}
+                alt={meal.name}
+                className="w-full h-44 object-cover rounded-t-2xl"
+              />
               {/* FAVORITE */}
 
               <div className="relative p-3">

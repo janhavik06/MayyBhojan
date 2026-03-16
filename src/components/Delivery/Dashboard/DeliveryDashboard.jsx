@@ -69,63 +69,60 @@ export default function DeliveryDashboard() {
       console.error("Accept order error", err);
     }
   }
-  function declineOrder(orderId) {
-    setOrders((prev) => prev.filter((o) => o.id !== orderId));
 
-    setToast("Order Declined ❌");
+  setToast("Order Declined ❌");
 
-    setTimeout(() => setToast(null), 2000);
-  }
-
-  return (
-    <div className="bg-[#F6F2EF] min-h-screen p-8">
-      <h1 className="text-3xl font-bold mb-6">Available Deliveries</h1>
-
-      {orders.length === 0 && (
-        <p className="text-gray-500">No delivery orders available right now</p>
-      )}
-
-      <div className="space-y-6">
-        {orders.map((o) => (
-          <div key={o.id} className="bg-white p-6 rounded-xl shadow border">
-            <h3 className="font-semibold text-lg">Order #{o.id}</h3>
-
-            <p className="text-sm text-gray-500">Kitchen: {o.kitchen}</p>
-
-            <p className="text-sm text-gray-500">Pickup Address: {o.pickup}</p>
-
-            <p className="text-sm text-gray-500">Delivery Fee: ₹{o.earn}</p>
-
-            <p className="text-sm text-gray-500">Order Total: ₹{o.total}</p>
-
-            <p className="text-sm text-gray-500">Status: {o.status}</p>
-
-            <div className="flex gap-4 mt-4">
-              <button
-                onClick={() => declineOrder(o.id)}
-                className="flex-1 border border-red-400 text-red-500 py-2 rounded hover:bg-red-50"
-              >
-                Decline
-              </button>
-
-              <button
-                onClick={() => acceptOrder(o)}
-                className="flex-1 bg-orange-500 text-white py-2 rounded hover:bg-orange-600"
-              >
-                Accept Order
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* TOAST MESSAGE */}
-
-      {toast && (
-        <div className="fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded shadow-lg">
-          {toast}
-        </div>
-      )}
-    </div>
-  );
+  setTimeout(() => setToast(null), 2000);
 }
+
+return (
+  <div className="bg-[#F6F2EF] min-h-screen p-8">
+    <h1 className="text-3xl font-bold mb-6">Available Deliveries</h1>
+
+    {orders.length === 0 && (
+      <p className="text-gray-500">No delivery orders available right now</p>
+    )}
+
+    <div className="space-y-6">
+      {orders.map((o) => (
+        <div key={o.id} className="bg-white p-6 rounded-xl shadow border">
+          <h3 className="font-semibold text-lg">Order #{o.id}</h3>
+
+          <p className="text-sm text-gray-500">Kitchen: {o.kitchen}</p>
+
+          <p className="text-sm text-gray-500">Pickup Address: {o.pickup}</p>
+
+          <p className="text-sm text-gray-500">Delivery Fee: ₹{o.earn}</p>
+
+          <p className="text-sm text-gray-500">Order Total: ₹{o.total}</p>
+
+          <p className="text-sm text-gray-500">Status: {o.status}</p>
+
+          <div className="flex gap-4 mt-4">
+            <button
+              onClick={() => declineOrder(o.id)}
+              className="flex-1 border border-red-400 text-red-500 py-2 rounded hover:bg-red-50"
+            >
+              Decline
+            </button>
+
+            <button
+              onClick={() => acceptOrder(o)}
+              className="flex-1 bg-orange-500 text-white py-2 rounded hover:bg-orange-600"
+            >
+              Accept Order
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* TOAST MESSAGE */}
+
+    {toast && (
+      <div className="fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded shadow-lg">
+        {toast}
+      </div>
+    )}
+  </div>
+);

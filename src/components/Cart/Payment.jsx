@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { createOrder } from "../../api/orderApi";
 import { clearCart } from "../../api/cartApi";
 import { getUser } from "../../utils/getUser";
+import Confetti from "react-confetti";
 
 export default function Payment() {
   const { cart, total, emptyCart } = useCart();
