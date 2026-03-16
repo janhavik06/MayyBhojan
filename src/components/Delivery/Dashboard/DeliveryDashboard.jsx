@@ -11,8 +11,20 @@ export default function DeliveryDashboard() {
   const partnerId = user?.id;
   const API = "http://localhost:8080/api/delivery";
 
-  /* LOAD AVAILABLE ORDERS */
+  /* CHECK IF DELIVERY IS APPROVED */
+
   useEffect(() => {
+
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    if (user.accountStatus !== "ACTIVE") {
+      navigate("/delivery/onboarding");
+      return;
+    }
+
     loadOrders();
 
     const interval = setInterval(() => {
@@ -22,22 +34,23 @@ export default function DeliveryDashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  /* LOAD AVAILABLE ORDERS */
+
   async function loadOrders() {
     try {
       const res = await axios.get(`${API}/orders`);
 
       const mapped = res.data.map((o) => ({
         id: o.id,
-
-        kitchen: "Homemaker Kitchen", // temporary hardcoded
-
-        pickup: o.house + ", " + o.area + ", " + o.landmark + " - " + o.pincode,
-
+        kitchen: o.kitchenName || "Homemaker Kitchen",
+        pickup:
+          o.house + ", " +
+          o.area + ", " +
+          o.landmark + " - " +
+          o.pincode,
         earn: o.deliveryFee || 40,
-
         status: o.status,
-
-        total: o.total,
+        total: o.total
       }));
 
       setOrders(mapped);
@@ -50,29 +63,26 @@ export default function DeliveryDashboard() {
   async function acceptOrder(order) {
     try {
       await axios.put(`${API}/accept/${order.id}?partnerId=${partnerId}`);
-<<<<<<< HEAD
-=======
 
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
->>>>>>> parent of 4dcaab6 (changes after pull)
 
       setToast("Order Accepted");
 
       setTimeout(() => setToast(null), 2000);
 
-<<<<<<< HEAD
+
       // remove order from available list
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
 
       // redirect to active delivery page
-=======
->>>>>>> parent of 4dcaab6 (changes after pull)
+
+      setOrders(prev => prev.filter(o => o.id !== order.id));
+
       navigate("/delivery/active");
     } catch (err) {
       console.error("Accept order error", err);
     }
   }
-<<<<<<< HEAD
 
   setToast("Order Declined ❌");
 
@@ -130,7 +140,6 @@ return (
     )}
   </div>
 );
-=======
   function declineOrder(orderId) {
     setOrders((prev) => prev.filter((o) => o.id !== orderId));
 
@@ -139,9 +148,19 @@ return (
     setTimeout(() => setToast(null), 2000);
   }
 
-  return (
+  return (                
     <div className="bg-[#F6F2EF] min-h-screen p-8">
       <h1 className="text-3xl font-bold mb-6">Available Deliveries</h1>
+
+      <h1 className="text-3xl font-bold mb-6">
+        Available Deliveries
+      </h1>
+
+      {orders.length === 0 && (
+        <p className="text-gray-500">
+          No delivery orders available right now
+        </p>
+      )}
 
       <div className="space-y-6">
         {orders.map((o) => (
@@ -179,10 +198,11 @@ return (
 
       {toast && (
         <div className="fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded">
+
+        <div className="fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded shadow-lg">
           {toast}
         </div>
       )}
     </div>
   );
 }
->>>>>>> parent of 4dcaab6 (changes after pull)

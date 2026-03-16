@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { createOrder } from "../../api/orderApi";
 import { clearCart } from "../../api/cartApi";
 import { getUser } from "../../utils/getUser";
-
+import Confetti from "react-confetti";
 export default function Payment() {
   const { cart, total, emptyCart } = useCart();
   const navigate = useNavigate();
@@ -20,8 +20,7 @@ export default function Payment() {
 
   const delivery = 35;
   const platform = 12;
-  const taxes = 28.5;
-
+const taxes = total * 0.05;
   const grand = total + delivery + platform + taxes;
 
   // ✅ FIXED useEffect
@@ -37,11 +36,7 @@ export default function Payment() {
 
   async function confirmPayment() {
     try {
-<<<<<<< HEAD
-      const items = cart.map((i) => ({
-=======
       const items = cart.map(i => ({
->>>>>>> parent of 4dcaab6 (changes after pull)
         foodId: i.foodId,
         qty: i.qty,
         price: i.price,
@@ -52,11 +47,7 @@ export default function Payment() {
         addressId,
         paymentMethod: method,
         total: grand,
-<<<<<<< HEAD
-        items: items,
-=======
         items
->>>>>>> parent of 4dcaab6 (changes after pull)
       });
 
       const orderId = res.data.id;
@@ -66,17 +57,9 @@ export default function Payment() {
 
       setShowSuccess(true); // ✅ SHOW POPUP
 
-<<<<<<< HEAD
-      setTimeout(() => {
-        navigate("/confirm", {
-          state: { orderId },
-        });
-      }, 2000);
-=======
       // ❌ REMOVE direct navigation here
       // navigate("/confirm", { state: { orderId } });
 
->>>>>>> parent of 4dcaab6 (changes after pull)
     } catch (err) {
       console.error("Payment error", err);
     }
@@ -159,58 +142,41 @@ export default function Payment() {
       </div>
 
       {/* SUCCESS POPUP */}
-      {showSuccess && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-3xl shadow-2xl p-10 text-center w-[420px]">
-            <div className="text-green-500 text-6xl mb-4">✔</div>
+    {showSuccess && (
+  <>
+    <Confetti recycle={false} numberOfPieces={300} />
 
-<<<<<<< HEAD
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-            <div className="bg-white rounded-3xl shadow-2xl p-10 text-center w-[420px]">
-              <div className="text-green-500 text-6xl mb-4">✔</div>
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
 
-              <h2 className="text-2xl font-bold text-gray-800">
-                Order Placed Successfully!
-              </h2>
+      <div className="bg-white rounded-3xl shadow-2xl p-10 text-center w-[420px]">
 
-              <p className="text-gray-500 mt-2">
-                Your food is being prepared 🍛
-              </p>
+        <div className="text-green-500 text-6xl mb-4">✔</div>
 
-              <p className="text-sm text-gray-400 mt-1">
-                Redirecting to your order tracking...
-              </p>
+        <h2 className="text-2xl font-bold text-gray-800">
+          Order Placed Successfully!
+        </h2>
 
-              <button
-                onClick={() => navigate("/orders")}
-                className="mt-6 bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold"
-              >
-                View My Orders
-              </button>
-            </div>
-=======
-            <h2 className="text-2xl font-bold text-gray-800">
-              Order Placed Successfully!
-            </h2>
+        <p className="text-gray-500 mt-2">
+          Your food is being prepared 🍛
+        </p>
 
-            <p className="text-gray-500 mt-2">
-              Your food is being prepared 🍛
-            </p>
+        <p className="text-sm text-gray-400 mt-1">
+          Redirecting to your order tracking...
+        </p>
 
-            <button
-              onClick={() => navigate("/orders")}
-              className="mt-6 bg-orange-500 text-white px-6 py-3 rounded-xl"
-            >
-              View My Orders
-            </button>
->>>>>>> parent of 4dcaab6 (changes after pull)
+        <button
+          onClick={() => navigate("/orders")}
+          className="mt-6 bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold"
+        >
+          View My Orders
+        </button>
+
+      </div>
+
           </div>
         </div>
       )}
+
     </div>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> parent of 4dcaab6 (changes after pull)

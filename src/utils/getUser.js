@@ -1,9 +1,4 @@
-export function getUser(){
+import { getUser } from "../../utils/getUser";
+import Confetti from "react-confetti";
 
-  const user = localStorage.getItem("user");
-
-  if(!user) return null;
-
-  return JSON.parse(user);
-
-}
+const user = getUser();

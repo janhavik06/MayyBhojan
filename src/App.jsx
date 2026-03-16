@@ -42,6 +42,7 @@ import DeliveryVerification from "./components/Delivery/DeliveryVerification";
 import VehicleSetup from "./components/Delivery/VehicleSetup";
 import DeliveryOnboardingLayout from "./components/Delivery/DeliveryOnboardingLayout";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
+import AdminDeliveryApprovals from "../Admin/Dashboard/AdminDeliveryApprovals";
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(() => {
     const user = JSON.parse(localStorage.getItem("maybhojan_user"));
@@ -141,6 +142,10 @@ export default function App() {
             path="/signup"
             element={<Signup setLoggedIn={setLoggedIn} />}
           />
+          <Route
+ path="/admin/delivery-approvals"
+ element={<AdminDeliveryApprovals />}
+/>
 
           <Route path="/cart" element={<Cart />} />
           <Route path="/address" element={<Address />} />
@@ -171,22 +176,25 @@ export default function App() {
           <Route path="/cook/kitchen" element={<CookKitchenInfo />} />
           <Route path="/cook/identity" element={<CookIdentityVerification />} />
         </Route>
-        // ✅ ONBOARDING (no sidebar, only navbar)
-        <Route element={<DeliveryOnboardingLayout />}>
-          <Route path="/delivery/onboarding" element={<DeliveryOnboarding />} />
-          <Route path="/delivery/identity" element={<DeliveryIdentity />} />
-          <Route
-            path="/delivery/verification"
-            element={<DeliveryVerification />}
-          />
-          <Route path="/delivery/vehicle" element={<VehicleSetup />} />
-        </Route>
-        {/* DELIVERY DASHBOARD */}
-        <Route element={<DeliveryLayout />}>
-          <Route path="/delivery" element={<DeliveryDashboard />} />
-          <Route path="/delivery/active" element={<ActiveOrder />} />
-          <Route path="/delivery/wallet" element={<DeliveryWallet />} />
-        </Route>
+       {/* DELIVERY ONBOARDING */}
+<Route element={<DeliveryOnboardingLayout />}>
+  <Route path="/delivery/onboarding" element={<DeliveryOnboarding />} />
+  <Route path="/delivery/identity" element={<DeliveryIdentity />} />
+  <Route path="/delivery/verification" element={<DeliveryVerification />} />
+  <Route path="/delivery/vehicle" element={<VehicleSetup />} />
+</Route>
+      {/* DELIVERY DASHBOARD */}
+<Route element={<DeliveryLayout />}>
+
+  <Route path="/delivery" element={<DeliveryDashboard />} />
+  
+  {/* ADD THIS */}
+  <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
+
+  <Route path="/delivery/active" element={<ActiveOrder />} />
+  <Route path="/delivery/wallet" element={<DeliveryWallet />} />
+
+</Route>
         {/* ADMIN DASHBOARD */}
         <Route element={<ProtectedRoute allowedRole="ADMIN" />}>
           <Route element={<AdminLayout />}>
