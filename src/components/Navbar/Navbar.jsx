@@ -1,43 +1,45 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "../Cart/CartContext";
 
-export default function Navbar({ language, setLanguage, loggedIn }) {
+export default function Navbar({ language, setLanguage }) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
-  const { count } = useCart();
-  const landingPages = ["/", "/about", "/how", "/explore"];
-  const authPages = ["/login", "/signup"];
-
-  const isLandingPage = landingPages.includes(location.pathname);
-  const isAuthPage = authPages.includes(location.pathname);
-  const showCustomerNav = loggedIn && location.pathname !== "/";
-  const landingNavbarPages = ["/", "/about", "/how", "/explore"];
-  // const showLandingNavbar = landingNavbarPages.includes(location.pathname);
   const navigate = useNavigate();
+  const { count } = useCart();
 
+  // ✅ Detect customer pages
+  const isCustomerPage = location.pathname.startsWith("/custalogin");
+  const isHomePage = location.pathname === "/";
   const user = JSON.parse(localStorage.getItem("maybhojan_user"));
   const role = user?.role;
 
   function goToProfile() {
-    if (role === "cook") {
-      navigate("/cook");
-    } else if (role === "customer") {
-      navigate("/profile");
-    } else if (role === "delivery") {
-      navigate("/delivery");
-    } else if (role === "admin") {
-      navigate("/admin");
-    }
+    if (role === "COOK") navigate("/cook");
+    else if (role === "CUSTOMER") navigate("/profile");
+    else if (role === "DELIVERY") navigate("/delivery");
+    else if (role === "ADMIN") navigate("/admin");
   }
 
   return (
-    <header className="w-full bg-white shadow-md shadow-black/5 sticky top-0 z-100">
+    <header className="w-full bg-white shadow-md shadow-black/5 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
         {/* LEFT */}
         <nav className="hidden md:flex gap-8 font-medium">
-          {!showCustomerNav ? (
+          {isCustomerPage ? (
+            <>
+              <Link to="/" className="text-gray-700 hover:text-orange-500">
+                <i className="fa-solid fa-house"></i> Home
+              </Link>
+
+              <Link
+                to="/explore"
+                className="text-gray-700 hover:text-orange-500"
+              >
+                <i className="fa-solid fa-magnifying-glass"></i> Explore
+              </Link>
+            </>
+          ) : (
             <>
               <NavLink
                 to="/about"
@@ -60,19 +62,6 @@ export default function Navbar({ language, setLanguage, loggedIn }) {
               >
                 How it Works
               </NavLink>
-            </>
-          ) : (
-            <>
-              <Link to="/" className="text-gray-700 hover:text-orange-500">
-                <i className="fa-solid fa-house"></i> Home
-              </Link>
-
-              <Link
-                to="/explore"
-                className="text-gray-700 hover:text-orange-500"
-              >
-                <i className="fa-solid fa-magnifying-glass"></i> Explore
-              </Link>
             </>
           )}
         </nav>
@@ -89,7 +78,8 @@ export default function Navbar({ language, setLanguage, loggedIn }) {
         </Link>
 
         {/* RIGHT */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-6">
+          {/* LANGUAGE */}
           <button
             onClick={() => setLanguage(language === "en" ? "hi" : "en")}
             className="border px-3 py-1 rounded-full text-sm"
@@ -97,37 +87,38 @@ export default function Navbar({ language, setLanguage, loggedIn }) {
             🌐 {language === "en" ? "EN/हिं" : "हिं/EN"}
           </button>
 
-          {isAuthPage ? null : isLandingPage ? (
+          {isCustomerPage ? (
             <>
-              <Link to="/login" className="px-5 py-2 font-semibold">
-                Login
-              </Link>
-
-              <Link
-                to="/signup"
-                className="bg-orange-500 text-white px-5 py-2 rounded-full font-semibold"
-              >
-                Sign Up
-              </Link>
-            </>
-          ) : (
-            role === "customer" && (
-              <>
-                {/* CART ICON */}
-                <Link to="/cart" className="relative text-xl cursor-pointer">
-                  <i className="fa-solid fa-basket-shopping"></i>
-
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+              {/* CART */}
+              <Link to="/cart" className="relative text-xl">
+                <i className="fa-solid fa-cart-shopping"></i>
+                {count > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs px-2 rounded-full">
                     {count}
                   </span>
+                )}
+              </Link>
+
+              {/* PROFILE */}
+              <div onClick={goToProfile} className="cursor-pointer">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-400 to-orange-600 flex items-center justify-center text-white shadow-md hover:scale-105 transition">
+                  <i className="fa-solid fa-user"></i>
+                </div>
+              </div>
+            </>
+          ) : (
+            isHomePage && (
+              <>
+                <Link to="/login" className="px-5 py-2 font-semibold">
+                  Login
                 </Link>
 
-                {/* PROFILE ICON */}
-                <div onClick={goToProfile} className="cursor-pointer">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold shadow-md hover:shadow-lg transition">
-                    <i className="fa-solid fa-user"></i>
-                  </div>
-                </div>
+                <Link
+                  to="/signup"
+                  className="bg-orange-500 text-white px-5 py-2 rounded-full font-semibold"
+                >
+                  Sign Up
+                </Link>
               </>
             )
           )}
@@ -138,68 +129,6 @@ export default function Navbar({ language, setLanguage, loggedIn }) {
           {open ? "✖" : "☰"}
         </button>
       </div>
-
-      {/* MOBILE MENU */}
-      {open && (
-        <div className="md:hidden border-t bg-white px-6 py-4 space-y-4">
-          <button
-            onClick={() => setLanguage(language === "en" ? "hi" : "en")}
-            className="border px-3 py-1 rounded-full text-sm"
-          >
-            🌐 {language === "en" ? "EN/हिं" : "हिं/EN"}
-          </button>
-
-          {!showCustomerNav ? (
-            <>
-              <NavLink
-                to="/about"
-                onClick={() => setOpen(false)}
-                className="block"
-              >
-                About Us
-              </NavLink>
-
-              <NavLink
-                to="/how"
-                onClick={() => setOpen(false)}
-                className="block"
-              >
-                How it Works
-              </NavLink>
-
-              <Link
-                to="/login"
-                onClick={() => setOpen(false)}
-                className="block"
-              >
-                Login
-              </Link>
-
-              <Link
-                to="/signup"
-                onClick={() => setOpen(false)}
-                className="block bg-orange-500 text-white px-4 py-2 rounded-full text-center"
-              >
-                Sign Up
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link to="/" onClick={() => setOpen(false)} className="block">
-                <i className="fa-solid fa-house"></i> Home
-              </Link>
-
-              <Link
-                to="/explore"
-                onClick={() => setOpen(false)}
-                className="block"
-              >
-                <i className="fa-solid fa-magnifying-glass"></i> Explore
-              </Link>
-            </>
-          )}
-        </div>
-      )}
     </header>
   );
 }
