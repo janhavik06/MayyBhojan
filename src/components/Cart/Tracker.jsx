@@ -1,57 +1,40 @@
-export default function Tracker({ status }) {
-
-  const steps = [
-    { key: "PLACED", label: "Order Placed" },
-    { key: "ACCEPTED", label: "Delivery Partner Assigned" },
-    { key: "DELIVERED", label: "Delivered" }
-  ];
-
-  const statusIndex = steps.findIndex(s => s.key === status);
-
-  return (
-
-    <div className="max-w-3xl mx-auto mt-10 bg-white p-8 rounded-xl shadow">
-
-      <h2 className="font-semibold text-lg mb-6">
-        Delivery Progress
-      </h2>
-
-      <div className="space-y-6">
-
-        {steps.map((step, index) => {
-
-          const active = index <= statusIndex;
-
-          return (
-
-            <div key={step.key} className="flex items-center gap-4">
-
-              <div
-                className={`w-4 h-4 rounded-full ${
-                  active ? "bg-green-500" : "bg-gray-300"
-                }`}
-              />
-
-              <span
-                className={`${
-                  active
-                    ? "text-green-600 font-semibold"
-                    : "text-gray-500"
-                }`}
-              >
-                {step.label}
-              </span>
-
+export default function Tracker({ step }) {
+    const steps = [
+      { id: 1, label: "Cart" },
+      { id: 2, label: "Address" },
+      { id: 3, label: "Payment" },
+      { id: 4, label: "Confirm" },
+    ];
+  
+    return (
+      <div className="flex justify-center gap-16 py-8 text-sm">
+        {steps.map((s) => (
+          <div key={s.id} className="flex flex-col items-center">
+  
+            <div
+              className={`w-10 h-10 flex items-center justify-center rounded-full border
+                ${
+                  step === s.id
+                    ? "bg-orange-500 text-white border-orange-500"
+                    : step > s.id
+                    ? "bg-green-100 text-green-600 border-green-300"
+                    : "bg-gray-100 text-gray-500"
+                }
+              `}
+            >
+              {s.id}
             </div>
-
-          );
-
-        })}
-
+  
+            <span
+              className={`mt-2 ${
+                step === s.id ? "text-orange-500 font-semibold" : ""
+              }`}
+            >
+              {s.label}
+            </span>
+          </div>
+        ))}
       </div>
-
-    </div>
-
-  );
-
-}
+    );
+  }
+  

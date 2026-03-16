@@ -1,21 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"; // ✅ FIXED
 import { useCart } from "./CartContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { createOrder } from "../../api/orderApi";
 import { clearCart } from "../../api/cartApi";
 import { getUser } from "../../utils/getUser";
-import Confetti from "react-confetti";
 
 export default function Payment() {
   const { cart, total, emptyCart } = useCart();
-
   const navigate = useNavigate();
   const location = useLocation();
 
   const addressId = location.state?.addressId;
 
   const [method, setMethod] = useState("card");
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false); // ✅ FIXED
 
   const user = getUser();
   const userId = user?.id;
@@ -26,10 +24,11 @@ export default function Payment() {
 
   const grand = total + delivery + platform + taxes;
 
+  // ✅ FIXED useEffect
   useEffect(() => {
     if (showSuccess) {
       const timer = setTimeout(() => {
-        navigate("/confirm");
+        navigate("/orders");
       }, 3500);
 
       return () => clearTimeout(timer);
@@ -38,33 +37,46 @@ export default function Payment() {
 
   async function confirmPayment() {
     try {
+<<<<<<< HEAD
       const items = cart.map((i) => ({
+=======
+      const items = cart.map(i => ({
+>>>>>>> parent of 4dcaab6 (changes after pull)
         foodId: i.foodId,
         qty: i.qty,
         price: i.price,
       }));
 
       const res = await createOrder({
-        userId: userId,
-        addressId: addressId,
+        userId,
+        addressId,
         paymentMethod: method,
         total: grand,
+<<<<<<< HEAD
         items: items,
+=======
+        items
+>>>>>>> parent of 4dcaab6 (changes after pull)
       });
 
       const orderId = res.data.id;
 
       await clearCart(userId);
-
       emptyCart();
 
-      setShowSuccess(true);
+      setShowSuccess(true); // ✅ SHOW POPUP
 
+<<<<<<< HEAD
       setTimeout(() => {
         navigate("/confirm", {
           state: { orderId },
         });
       }, 2000);
+=======
+      // ❌ REMOVE direct navigation here
+      // navigate("/confirm", { state: { orderId } });
+
+>>>>>>> parent of 4dcaab6 (changes after pull)
     } catch (err) {
       console.error("Payment error", err);
     }
@@ -148,9 +160,11 @@ export default function Payment() {
 
       {/* SUCCESS POPUP */}
       {showSuccess && (
-        <>
-          <Confetti recycle={false} numberOfPieces={300} />
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl shadow-2xl p-10 text-center w-[420px]">
+            <div className="text-green-500 text-6xl mb-4">✔</div>
 
+<<<<<<< HEAD
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
             <div className="bg-white rounded-3xl shadow-2xl p-10 text-center w-[420px]">
               <div className="text-green-500 text-6xl mb-4">✔</div>
@@ -174,9 +188,29 @@ export default function Payment() {
                 View My Orders
               </button>
             </div>
+=======
+            <h2 className="text-2xl font-bold text-gray-800">
+              Order Placed Successfully!
+            </h2>
+
+            <p className="text-gray-500 mt-2">
+              Your food is being prepared 🍛
+            </p>
+
+            <button
+              onClick={() => navigate("/orders")}
+              className="mt-6 bg-orange-500 text-white px-6 py-3 rounded-xl"
+            >
+              View My Orders
+            </button>
+>>>>>>> parent of 4dcaab6 (changes after pull)
           </div>
-        </>
+        </div>
       )}
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> parent of 4dcaab6 (changes after pull)
