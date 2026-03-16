@@ -15,9 +15,19 @@ export default function DeliveryDashboard() {
 
   const API = "http://localhost:8080/api/delivery";
 
-  /* LOAD AVAILABLE ORDERS */
+  /* CHECK IF DELIVERY IS APPROVED */
 
   useEffect(() => {
+
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    if (user.accountStatus !== "ACTIVE") {
+      navigate("/delivery/onboarding");
+      return;
+    }
 
     loadOrders();
 
@@ -29,6 +39,8 @@ export default function DeliveryDashboard() {
 
   }, []);
 
+  /* LOAD AVAILABLE ORDERS */
+
   async function loadOrders() {
 
     try {
@@ -37,19 +49,14 @@ export default function DeliveryDashboard() {
 
       const mapped = res.data.map((o) => ({
         id: o.id,
-
         kitchen: o.kitchenName || "Homemaker Kitchen",
-
         pickup:
           o.house + ", " +
           o.area + ", " +
           o.landmark + " - " +
           o.pincode,
-
         earn: o.deliveryFee || 40,
-
         status: o.status,
-
         total: o.total
       }));
 
@@ -77,10 +84,8 @@ export default function DeliveryDashboard() {
 
       setTimeout(() => setToast(null), 2000);
 
-      // remove order from available list
       setOrders(prev => prev.filter(o => o.id !== order.id));
 
-      // redirect to active delivery page
       navigate("/delivery/active");
 
     } catch (err) {
@@ -90,8 +95,6 @@ export default function DeliveryDashboard() {
     }
 
   }
-  function declineOrder(orderId) {
-    setOrders((prev) => prev.filter((o) => o.id !== orderId));
 
   /* DECLINE ORDER */
 
@@ -114,11 +117,9 @@ export default function DeliveryDashboard() {
       </h1>
 
       {orders.length === 0 && (
-
         <p className="text-gray-500">
           No delivery orders available right now
         </p>
-
       )}
 
       <div className="space-y-6">
@@ -175,14 +176,10 @@ export default function DeliveryDashboard() {
 
       </div>
 
-      {/* TOAST MESSAGE */}
-
       {toast && (
 
         <div className="fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded shadow-lg">
-
           {toast}
-
         </div>
 
       )}

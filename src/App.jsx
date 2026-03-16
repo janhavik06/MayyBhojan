@@ -170,22 +170,25 @@ export default function App() {
           <Route path="/cook/kitchen" element={<CookKitchenInfo />} />
           <Route path="/cook/identity" element={<CookIdentityVerification />} />
         </Route>
-        // ✅ ONBOARDING (no sidebar, only navbar)
-        <Route element={<DeliveryOnboardingLayout />}>
-          <Route path="/delivery/onboarding" element={<DeliveryOnboarding />} />
-          <Route path="/delivery/identity" element={<DeliveryIdentity />} />
-          <Route
-            path="/delivery/verification"
-            element={<DeliveryVerification />}
-          />
-          <Route path="/delivery/vehicle" element={<VehicleSetup />} />
-        </Route>
-        {/* DELIVERY DASHBOARD */}
-        <Route element={<DeliveryLayout />}>
-          <Route path="/delivery" element={<DeliveryDashboard />} />
-          <Route path="/delivery/active" element={<ActiveOrder />} />
-          <Route path="/delivery/wallet" element={<DeliveryWallet />} />
-        </Route>
+       {/* DELIVERY ONBOARDING */}
+<Route element={<DeliveryOnboardingLayout />}>
+  <Route path="/delivery/onboarding" element={<DeliveryOnboarding />} />
+  <Route path="/delivery/identity" element={<DeliveryIdentity />} />
+  <Route path="/delivery/verification" element={<DeliveryVerification />} />
+  <Route path="/delivery/vehicle" element={<VehicleSetup />} />
+</Route>
+      {/* DELIVERY DASHBOARD */}
+<Route element={<DeliveryLayout />}>
+
+  <Route path="/delivery" element={<DeliveryDashboard />} />
+  
+  {/* ADD THIS */}
+  <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
+
+  <Route path="/delivery/active" element={<ActiveOrder />} />
+  <Route path="/delivery/wallet" element={<DeliveryWallet />} />
+
+</Route>
         {/* ADMIN DASHBOARD */}
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<AdminDashboard />} />
