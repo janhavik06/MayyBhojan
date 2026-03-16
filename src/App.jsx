@@ -41,6 +41,7 @@ import DeliveryIdentity from "./components/Delivery/DeliveryIdentity";
 import DeliveryVerification from "./components/Delivery/DeliveryVerification";
 import VehicleSetup from "./components/Delivery/VehicleSetup";
 import DeliveryOnboardingLayout from "./components/Delivery/DeliveryOnboardingLayout";
+import ProtectedRoute from "./components/Auth/ProtectedRoute";
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(() => {
     const user = JSON.parse(localStorage.getItem("maybhojan_user"));
@@ -187,10 +188,12 @@ export default function App() {
           <Route path="/delivery/wallet" element={<DeliveryWallet />} />
         </Route>
         {/* ADMIN DASHBOARD */}
-        <Route element={<AdminLayout />}>
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/approvals" element={<AdminApprovals />} />
-          <Route path="/admin/safety" element={<AdminTrustSafety />} />
+        <Route element={<ProtectedRoute allowedRole="ADMIN" />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/approvals" element={<AdminApprovals />} />
+            <Route path="/admin/safety" element={<AdminTrustSafety />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

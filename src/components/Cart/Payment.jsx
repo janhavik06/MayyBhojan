@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { createOrder } from "../../api/orderApi";
 import { clearCart } from "../../api/cartApi";
 import { getUser } from "../../utils/getUser";
+import Confetti from "react-confetti";
 
 export default function Payment() {
 
@@ -207,7 +208,7 @@ export default function Payment() {
             </div>
 
           </div>
-        </div>
+        </>
       )}
 
     </div>
@@ -215,3 +216,4 @@ export default function Payment() {
   );
 
 }
+
