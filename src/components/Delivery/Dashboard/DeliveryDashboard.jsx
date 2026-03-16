@@ -90,6 +90,8 @@ export default function DeliveryDashboard() {
     }
 
   }
+  function declineOrder(orderId) {
+    setOrders((prev) => prev.filter((o) => o.id !== orderId));
 
   /* DECLINE ORDER */
 
