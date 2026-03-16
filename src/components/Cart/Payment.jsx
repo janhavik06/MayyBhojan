@@ -5,6 +5,10 @@ import { createOrder } from "../../api/orderApi";
 import { clearCart } from "../../api/cartApi";
 import { getUser } from "../../utils/getUser";
 import Confetti from "react-confetti";
+<<<<<<< HEAD
+=======
+
+>>>>>>> cbdde50348b247e86302d49e595a73c3b16fe4e2
 export default function Payment() {
 
   const { cart, total, emptyCart } = useCart();
@@ -205,12 +209,19 @@ const taxes = total * 0.05;
 
       </div>
 
+<<<<<<< HEAD
     </div>
   </>
 )}
+=======
+          </div>
+        </>
+      )}
+>>>>>>> cbdde50348b247e86302d49e595a73c3b16fe4e2
 
     </div>
 
   );
 
 }
+

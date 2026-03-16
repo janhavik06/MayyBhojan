@@ -32,11 +32,13 @@ export default function DeliveryIdentity() {
         "http://localhost:8080/api/delivery-partner/identity",
         null,
         {
-          params: {
-            userId: user.id,
-            dob: form.dob,
-            address: form.address,
-          },
+         params: {
+  userId: user.id,
+  fullName: form.name,
+  phone: form.phone,
+  dob: form.dob,
+  address: form.address
+},
         }
       );
 

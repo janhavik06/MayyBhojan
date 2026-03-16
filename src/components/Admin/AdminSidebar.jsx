@@ -37,8 +37,11 @@ export default function AdminSidebar() {
         >
           <i class="fa-solid fa-clipboard-list"></i> Trust & Safety
         </NavLink>
-      </div>
-
+      
+<NavLink to="/admin/delivery-approvals">
+  Delivery Approvals
+</NavLink>
+</div>
       <div className="p-4 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]">
         <button
           onClick={logout}

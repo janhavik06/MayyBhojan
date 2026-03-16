@@ -44,7 +44,8 @@ export default function CustALogin() {
           chef: food.chef,
           price: food.price,
           time: food.time,
-          veg: food.category === "Veg"
+          veg: food.category === "Veg",
+          image: food.image
         }));
 
         setMeals(foods);
@@ -146,6 +147,11 @@ export default function CustALogin() {
 
             <div className="bg-white rounded-2xl border border-[#E5DAD3] shadow-sm hover:shadow-md hover:-translate-y-1 transition flex flex-col h-full">
 
+              <img
+                src={`http://localhost:8080/${meal.image}`}
+                alt={meal.name}
+                className="w-full h-44 object-cover rounded-t-2xl"
+              />
               {/* FAVORITE */}
 
               <div className="relative p-3">
@@ -162,11 +168,10 @@ export default function CustALogin() {
                   className="absolute top-3 right-3 text-xl"
                 >
 
-                  <i className={`fa-heart ${
-                    isFavorite(meal.id)
+                  <i className={`fa-heart ${isFavorite(meal.id)
                       ? "fa-solid text-red-500"
                       : "fa-regular text-gray-400"
-                  }`} />
+                    }`} />
 
                 </button>
 
@@ -176,11 +181,12 @@ export default function CustALogin() {
 
               <div className="p-5 flex flex-col flex-1">
 
-                <span className={`text-xs px-2 py-1 rounded-full border w-fit ${
-                  meal.veg
+
+
+                <span className={`text-xs px-2 py-1 rounded-full border w-fit ${meal.veg
                     ? "bg-green-50 text-green-700 border-green-200"
                     : "bg-red-50 text-red-600 border-red-200"
-                }`}>
+                  }`}>
                   {meal.veg ? "Veg" : "Non-Veg"}
                 </span>
 
