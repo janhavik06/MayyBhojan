@@ -6,7 +6,6 @@ import { clearCart } from "../../api/cartApi";
 import { getUser } from "../../utils/getUser";
 
 export default function Payment() {
-
   const { cart, total, emptyCart } = useCart();
 
   const navigate = useNavigate();
@@ -27,27 +26,21 @@ export default function Payment() {
   const grand = total + delivery + platform + taxes;
 
   useEffect(() => {
-
     if (showSuccess) {
-
       const timer = setTimeout(() => {
         navigate("/confirm");
       }, 3500);
 
       return () => clearTimeout(timer);
-
     }
-
   }, [showSuccess, navigate]);
 
   async function confirmPayment() {
-
     try {
-
-      const items = cart.map(i => ({
+      const items = cart.map((i) => ({
         foodId: i.foodId,
         qty: i.qty,
-        price: i.price
+        price: i.price,
       }));
 
       const res = await createOrder({
@@ -55,7 +48,7 @@ export default function Payment() {
         addressId: addressId,
         paymentMethod: method,
         total: grand,
-        items: items
+        items: items,
       });
 
       const orderId = res.data.id;
@@ -67,36 +60,23 @@ export default function Payment() {
       setShowSuccess(true);
 
       setTimeout(() => {
-
         navigate("/confirm", {
-          state: { orderId }
+          state: { orderId },
         });
-
       }, 2000);
-
     } catch (err) {
-
       console.error("Payment error", err);
-
     }
-
   }
 
   return (
-
     <div className="min-h-screen bg-[#F6F2EF]">
-
       <div className="max-w-7xl mx-auto px-10 grid lg:grid-cols-3 gap-10">
-
         {/* PAYMENT METHODS */}
         <div className="lg:col-span-2 bg-white rounded-2xl border p-8">
-
-          <h2 className="text-xl font-bold">
-            Choose Payment Method
-          </h2>
+          <h2 className="text-xl font-bold">Choose Payment Method</h2>
 
           <div className="space-y-4 mt-6">
-
             <div
               onClick={() => setMethod("card")}
               className={`p-5 border rounded-xl cursor-pointer
@@ -120,20 +100,14 @@ export default function Payment() {
             >
               Cash on Delivery
             </div>
-
           </div>
-
         </div>
 
         {/* ORDER SUMMARY */}
         <div className="bg-white rounded-2xl border p-6 h-fit">
-
-          <h2 className="font-semibold text-lg mb-4">
-            Order Summary
-          </h2>
+          <h2 className="font-semibold text-lg mb-4">Order Summary</h2>
 
           <div className="space-y-2 text-sm">
-
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span>₹{total}</span>
@@ -160,7 +134,6 @@ export default function Payment() {
               <span>Total</span>
               <span>₹{grand}</span>
             </div>
-
           </div>
 
           <button
@@ -169,9 +142,7 @@ export default function Payment() {
           >
             Confirm Payment
           </button>
-
         </div>
-
       </div>
 
       {/* SUCCESS POPUP */}
@@ -180,9 +151,7 @@ export default function Payment() {
           <Confetti recycle={false} numberOfPieces={300} />
 
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-
             <div className="bg-white rounded-3xl shadow-2xl p-10 text-center w-[420px]">
-
               <div className="text-green-500 text-6xl mb-4">✔</div>
 
               <h2 className="text-2xl font-bold text-gray-800">
@@ -203,15 +172,10 @@ export default function Payment() {
               >
                 View My Orders
               </button>
-
             </div>
-
           </div>
-        </div>
+        </>
       )}
-
     </div>
-
   );
-
 }

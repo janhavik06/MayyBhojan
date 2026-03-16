@@ -8,12 +8,20 @@ export default function Navbar({ language, setLanguage }) {
   const navigate = useNavigate();
   const { count } = useCart();
 
-  // ✅ Detect customer pages
-  const isCustomerPage = location.pathname.startsWith("/custalogin");
   const isHomePage = location.pathname === "/";
+
   const user = JSON.parse(localStorage.getItem("maybhojan_user"));
   const role = user?.role;
 
+  // ✅ FIX
+  const roleUpper = role?.toUpperCase();
+
+  const isCustomer = roleUpper === "CUSTOMER";
+  const isCook = roleUpper === "COOK";
+  const isDelivery = roleUpper === "DELIVERY";
+
+  // ✅ For navbar links (Home + Explore)
+  const isUserType = isCustomer || isCook || isDelivery;
   function goToProfile() {
     if (role === "COOK") navigate("/cook");
     else if (role === "CUSTOMER") navigate("/profile");
@@ -22,11 +30,11 @@ export default function Navbar({ language, setLanguage }) {
   }
 
   return (
-    <header className="w-full bg-white shadow-md shadow-black/5 sticky top-0 z-50">
+    <header className="w-full bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
         {/* LEFT */}
         <nav className="hidden md:flex gap-8 font-medium">
-          {isCustomerPage ? (
+          {isUserType ? (
             <>
               <Link to="/" className="text-gray-700 hover:text-orange-500">
                 <i className="fa-solid fa-house"></i> Home
@@ -43,22 +51,14 @@ export default function Navbar({ language, setLanguage }) {
             <>
               <NavLink
                 to="/about"
-                className={({ isActive }) =>
-                  isActive
-                    ? "text-orange-500"
-                    : "text-gray-700 hover:text-orange-500"
-                }
+                className="text-gray-700 hover:text-orange-500"
               >
                 About Us
               </NavLink>
 
               <NavLink
                 to="/how"
-                className={({ isActive }) =>
-                  isActive
-                    ? "text-orange-500"
-                    : "text-gray-700 hover:text-orange-500"
-                }
+                className="text-gray-700 hover:text-orange-500"
               >
                 How it Works
               </NavLink>
@@ -87,7 +87,7 @@ export default function Navbar({ language, setLanguage }) {
             🌐 {language === "en" ? "EN/हिं" : "हिं/EN"}
           </button>
 
-          {isCustomerPage ? (
+          {isCustomer && !isHomePage ? (
             <>
               {/* CART */}
               <Link to="/cart" className="relative text-xl">
@@ -101,7 +101,7 @@ export default function Navbar({ language, setLanguage }) {
 
               {/* PROFILE */}
               <div onClick={goToProfile} className="cursor-pointer">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-400 to-orange-600 flex items-center justify-center text-white shadow-md hover:scale-105 transition">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-400 to-orange-600 flex items-center justify-center text-white shadow-md">
                   <i className="fa-solid fa-user"></i>
                 </div>
               </div>
@@ -124,7 +124,7 @@ export default function Navbar({ language, setLanguage }) {
           )}
         </div>
 
-        {/* MOBILE BUTTON */}
+        {/* MOBILE */}
         <button className="md:hidden text-2xl" onClick={() => setOpen(!open)}>
           {open ? "✖" : "☰"}
         </button>

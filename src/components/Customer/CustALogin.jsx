@@ -71,7 +71,7 @@ export default function CustALogin() {
           <div className="flex items-center gap-2">
             {/* <HiCheckCircle className="text-green-500" /> */}
             All kitchens are 100% hygiene certified
-          </div>{" "}
+          </div>
         </div>
       </div>
 
@@ -140,7 +140,7 @@ export default function CustALogin() {
                   <div className="flex items-center justify-center gap-2">
                     <BsCartPlus />
                     Add to Cart
-                  </div>{" "}
+                  </div>
                 </button>
               </div>
             </div>
