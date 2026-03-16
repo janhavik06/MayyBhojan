@@ -4,6 +4,8 @@ import { useFavorites } from "./Dashboard/FavoriteContext";
 import { Link, useNavigate } from "react-router-dom";
 import { getFoods } from "../../api/food";
 import { getUser } from "../../utils/getUser";
+import { HiCheckCircle } from "react-icons/hi";
+import { BsCartPlus } from "react-icons/bs";
 
 export default function CustALogin() {
   const navigate = useNavigate();
