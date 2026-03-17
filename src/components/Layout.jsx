@@ -1,10 +1,14 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "./Navbar/Navbar";
 import Footer from "./Footer/Footer";
 
 export default function Layout({ loggedIn }) {
   const [language, setLanguage] = useState("en");
+  const location = useLocation();
+
+  // show footer only on home page
+  const showFooter = location.pathname === "/";
 
   return (
     <>
@@ -15,7 +19,8 @@ export default function Layout({ loggedIn }) {
       />
 
       <Outlet />
-      <Footer loggedIn={loggedIn} />
-      </>
+
+      {showFooter && <Footer loggedIn={loggedIn} />}
+    </>
   );
 }

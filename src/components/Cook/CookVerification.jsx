@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import axios from "axios";
 export default function CookVerification() {
   const navigate = useNavigate();
 
@@ -22,24 +22,47 @@ export default function CookVerification() {
     const saved =
       JSON.parse(localStorage.getItem("cook_onboarding_steps")) || {};
 
-    const updated = {
-      ...saved,
-      documents: true,
-    };
+  //  submit handler
+  async function handleSubmit() {
 
-    localStorage.setItem("cook_onboarding_steps", JSON.stringify(updated));
+  if (!files.id || !files.fssai || !files.kitchen) {
+    setError("Please upload all required documents.");
+    return;
   }
 
-  // ✅ submit handler
-  function handleSubmit() {
-    if (!files.id || !files.fssai || !files.kitchen) {
-      setError("Please upload all required documents.");
-      return;
+  try {
+
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    const formData = new FormData();
+    formData.append("userId", user.id);
+    formData.append("govtId", files.id);
+    formData.append("fssai", files.fssai);
+    formData.append("kitchenPhoto", files.kitchen);
+
+    const response = await fetch(
+      "http://localhost:8080/api/homemaker/documents",
+      {
+        method: "POST",
+        body: formData
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Upload failed");
     }
 
-    setError("");
-    markDocumentsComplete();
+    console.log("✅ Documents uploaded successfully");
 
+
+
+    const result = await response.text();
+
+console.log(result);
+
+if(result.includes("already")){
+    setError("Documents already submitted");
+}else{
     setSuccess(true);
     const saved =
       JSON.parse(localStorage.getItem("cook_onboarding_steps")) || {};
@@ -50,17 +73,21 @@ export default function CookVerification() {
     );
     // redirect after short delay
     setTimeout(() => {
-      navigate("/cook");
+      navigate("/cook/login");
     }, 1500);
-  }
 
+  } catch (error) {
+    console.error(error);
+    setError("Upload failed");
+  }
+}
   return (
     <div className="min-h-screen bg-[#F6F2EF]">
       <main className="max-w-7xl mx-auto px-8 py-10 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-10">
         {/* LEFT SIDE */}
         <div>
           <p className="text-xs text-orange-500 font-semibold tracking-wider">
-            STEP 2 OF 3: VERIFICATION
+            STEP 2 OF 4: VERIFICATION
           </p>
 
           <h1 className="text-3xl font-bold mt-2">

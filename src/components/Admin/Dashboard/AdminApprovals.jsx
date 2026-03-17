@@ -31,22 +31,26 @@ export default function AdminApprovals() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Kitchen Verification</h1>
-          <p className="text-gray-500">
-            Manage pending approvals and maintain platform safety standards.
-          </p>
+          <p className="text-gray-500">Manage homemaker approvals</p>
         </div>
-
-        <button className="bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold">
-          Bulk Approve Selected
-        </button>
+        {isPendingTab && (
+          <button
+            onClick={bulkApprove}
+            className="bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-orange-600"
+          >
+            Bulk Approve Selected
+          </button>
+        )}
       </div>
 
-      {/* STATS */}
-      <div className="grid grid-cols-4 gap-6">
-        <Stat title="Pending Approvals" value="24" />
-        <Stat title="Urgent Action" value="08" />
-        <Stat title="Verified Today" value="12" />
-        <Stat title="Avg Wait Time" value="2.4 Days" />
+      {/* TABS */}
+      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+        <TabBtn active={isPendingTab} onClick={() => setTab("pending")}>
+          Pending {pending.length > 0 && <span className="ml-1 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">{pending.length}</span>}
+        </TabBtn>
+        <TabBtn active={!isPendingTab} onClick={() => setTab("all")}>
+          All Homemakers
+        </TabBtn>
       </div>
 
       {/* FILTERS */}
@@ -59,6 +63,7 @@ export default function AdminApprovals() {
           <span className="text-gray-500">reviewing</span>
           <span className="text-gray-500">flagged</span>
         </div>
+      )}
 
         <input
           placeholder="Search by kitchen or owner..."
@@ -73,18 +78,29 @@ export default function AdminApprovals() {
         ))}
       </div>
 
-      {/* PAGINATION */}
-      <div className="flex justify-between items-center text-sm text-gray-600">
-        <p>Showing 4 of 24 pending applications</p>
+      {/* DETAILS MODAL */}
+      {detailsModal && (
+        <DetailsModal
+          data={detailsModal}
+          onClose={() => setDetailsModal(null)}
+          onApprove={isPendingTab ? () => approveKitchen(detailsModal.id) : null}
+          onReject={detailsModal.accountStatus !== "REJECTED" ? () => rejectKitchen(detailsModal.id) : null}
+        />
+      )}
 
-        <div className="flex gap-2">
-          <button className="border px-4 py-2 rounded-lg">Previous</button>
-          <button className="bg-orange-100 px-4 py-2 rounded-lg">1</button>
-          <button className="border px-4 py-2 rounded-lg">2</button>
-          <button className="border px-4 py-2 rounded-lg">3</button>
-          <button className="border px-4 py-2 rounded-lg">Next</button>
+      {/* TOAST */}
+      {actionFeedback && (
+        <div className="fixed bottom-6 right-6 w-80 bg-white shadow-xl border rounded-2xl p-5 flex gap-3 items-start z-50">
+          <div className={`w-10 h-10 flex items-center justify-center rounded-full
+            ${actionFeedback.type === "approve" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
+            {actionFeedback.type === "approve" ? "✔" : "✖"}
+          </div>
+          <div>
+            <p className="font-semibold">Action Completed</p>
+            <p className="text-sm text-gray-500">{actionFeedback.message}</p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* GUIDELINES */}
       <div className="bg-orange-50 border border-orange-100 p-6 rounded-2xl">
@@ -99,14 +115,17 @@ export default function AdminApprovals() {
   );
 }
 
-/* COMPONENTS */
+// ─── Tab Button ───────────────────────────────────────────────────────────────
 
-function Stat({ title, value }) {
+function TabBtn({ active, onClick, children }) {
   return (
-    <div className="bg-white p-6 rounded-2xl shadow">
-      <p className="text-gray-500">{title}</p>
-      <h3 className="text-2xl font-bold">{value}</h3>
-    </div>
+    <button
+      onClick={onClick}
+      className={`px-5 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-1
+        ${active ? "bg-white shadow text-orange-600" : "text-gray-500 hover:text-gray-700"}`}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -123,24 +142,41 @@ function KitchenCard({ kitchen, updateStatus }) {
             Urgent
           </span>
         )}
+        <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-lg">
+          {kitchen.name?.charAt(0)}
+        </div>
+        <div>
+          <p className="font-semibold">{kitchen.name}</p>
+          <p className="text-sm text-gray-500">{kitchen.email}</p>
+          <span className={`px-2 py-1 rounded-full text-xs mt-1 inline-block ${statusStyle[status]}`}>
+            {statusLabel[status]}
+          </span>
+        </div>
       </div>
 
-      {/* DOCUMENTS */}
-      <div>
-        <p className="font-semibold mb-2">Document Status</p>
-        <Checklist item="FSSAI Certificate" />
-        <Checklist item="Aadhar ID" />
-        <Checklist item="Kitchen Photos" />
-        <Progress />
+      <div className="flex gap-2">
+        <button
+          onClick={onViewDetails}
+          className="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100"
+        >
+          View Details
+        </button>
+        {showActions && (
+          <>
+            <button onClick={onApprove} className="px-4 py-2 rounded-lg text-sm font-semibold bg-green-500 text-white hover:bg-green-600">
+              Approve
+            </button>
+            <button onClick={onReject} className="px-4 py-2 rounded-lg text-sm border border-red-200 text-red-600 hover:bg-red-50">
+              Reject
+            </button>
+          </>
+        )}
       </div>
+    </div>
+  );
+}
 
-      {/* ADMIN CHECKLIST */}
-      <div>
-        <p className="font-semibold mb-2">Admin Safety Checklist</p>
-        <Checklist item="License matches name" />
-        <Checklist item="Photos show separation" />
-        <Checklist item="Owner ID verified" />
-      </div>
+// ─── Details Modal ────────────────────────────────────────────────────────────
 
       {/* ACTIONS */}
       <div className="flex flex-col gap-3">
@@ -162,18 +198,35 @@ function KitchenCard({ kitchen, updateStatus }) {
   );
 }
 
-function Checklist({ item }) {
+function Row({ label, value }) {
   return (
-    <label className="flex gap-2 text-sm text-gray-600">
-      <input type="checkbox" /> {item}
-    </label>
+    <div className="flex justify-between border-b pb-3">
+      <span className="text-gray-500 text-sm">{label}</span>
+      <span className="font-semibold text-sm text-gray-800">{value || "—"}</span>
+    </div>
   );
 }
 
-function Progress() {
+function DocCard({ title, url }) {
   return (
-    <div className="mt-3 h-2 bg-gray-200 rounded-full">
-      <div className="h-2 bg-orange-500 w-2/3 rounded-full"></div>
+    <div className="border rounded-xl p-4 text-center">
+      <div className="h-24 flex items-center justify-center bg-gray-100 rounded-lg mb-3 overflow-hidden">
+        {url ? (
+          <img src={url} alt={title} className="w-full h-full object-cover rounded-lg"
+            onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }} />
+        ) : (
+          <span className="text-4xl">📄</span>
+        )}
+        <div className="hidden w-full h-full items-center justify-center text-4xl">📄</div>
+      </div>
+      <p className="font-semibold text-sm mb-2">{title}</p>
+      {url ? (
+        <a href={url} target="_blank" rel="noreferrer" className="text-blue-500 text-sm underline hover:text-blue-700">
+          View Full Size
+        </a>
+      ) : (
+        <p className="text-gray-400 text-xs">Not uploaded</p>
+      )}
     </div>
   );
 }

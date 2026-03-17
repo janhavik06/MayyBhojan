@@ -1,15 +1,26 @@
-import { useState } from "react";
-import { useCart } from "../Cart/CartContext";
-import { useNavigate, Link } from "react-router-dom";
-
+import { useState, useEffect } from "react"; // ✅ FIXED
+import { useCart } from "./CartContext";
+import { useNavigate, useLocation } from "react-router-dom";
+import { createOrder } from "../../api/orderApi";
+import { clearCart } from "../../api/cartApi";
+import { getUser } from "../../utils/getUser";
+import Confetti from "react-confetti";
 export default function Payment() {
-  const { total } = useCart();
+  const { cart, total, emptyCart } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const addressId = location.state?.addressId;
+
   const [method, setMethod] = useState("card");
+  const [showSuccess, setShowSuccess] = useState(false); // ✅ FIXED
+
+  const user = getUser();
+  const userId = user?.id;
 
   const delivery = 35;
   const platform = 12;
-  const taxes = 28.5;
+const taxes = total * 0.05;
   const grand = total + delivery + platform + taxes;
 
   return (
@@ -31,16 +42,13 @@ export default function Payment() {
               {i + 1}
             </div>
 
-            <span
-              className={`mt-2 ${
-                i === 2 ? "text-orange-500 font-semibold" : "text-gray-500"
-              }`}
-            >
-              {label}
-            </span>
-          </div>
-        ))}
-      </div>
+      const res = await createOrder({
+        userId,
+        addressId,
+        paymentMethod: method,
+        total: grand,
+        items
+      });
 
       {/* MAIN */}
       <div className="max-w-7xl mx-auto px-10 grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -135,16 +143,16 @@ export default function Payment() {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span>₹{total.toFixed(2)}</span>
+              <span>₹{total}</span>
             </div>
 
             <div className="flex justify-between">
-              <span>Delivery Fee</span>
+              <span>Delivery</span>
               <span>₹{delivery}</span>
             </div>
 
             <div className="flex justify-between">
-              <span>Platform Fee</span>
+              <span>Platform</span>
               <span>₹{platform}</span>
             </div>
 
@@ -153,24 +161,27 @@ export default function Payment() {
               <span>₹{taxes}</span>
             </div>
 
-            <hr className="my-3" />
+            <hr />
 
             <div className="flex justify-between font-bold text-lg">
-              <span>Total Amount</span>
-              <span>₹{grand.toFixed(2)}</span>
+              <span>Total</span>
+              <span>₹{grand}</span>
             </div>
           </div>
 
           <button
-            onClick={() => navigate("/confirm")}
-            className="w-full mt-6 bg-orange-500 text-white py-4 rounded-xl font-semibold"
+            onClick={confirmPayment}
+            className="w-full mt-6 bg-orange-500 text-white py-4 rounded-xl"
           >
             Confirm Payment
           </button>
+        </div>
+      </div>
 
-          <p className="text-xs text-gray-500 text-center mt-3">
-            By confirming, you agree to Terms & Privacy Policy
-          </p>
+      {/* SUCCESS POPUP */}
+    {showSuccess && (
+  <>
+    <Confetti recycle={false} numberOfPieces={300} />
 
           <Link
             to="/address"
@@ -181,11 +192,6 @@ export default function Payment() {
         </div>
       </div>
 
-      {/* FOOTER ICONS */}
-      <div className="max-w-7xl mx-auto px-10 mt-16 grid grid-cols-3 text-sm text-gray-600 text-center pb-12">
-        <div>✔ Safe Payments</div>
-        <div>⚡ Fast Delivery</div>
-        <div>🚚 Student Partners</div>
       </div>
     </div>
   );

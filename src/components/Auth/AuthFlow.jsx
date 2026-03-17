@@ -1,51 +1,71 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
+const API = "http://localhost:8080/api/auth";
 
 const roles = [
   { id: "customer", label: "Customer", desc: "Order food" },
   { id: "cook", label: "Homemaker", desc: "Cook for community" },
   { id: "delivery", label: "Delivery Student", desc: "Deliver meals" },
-  { id: "admin", label: "Admin", desc: "Platform admin" },
 ];
 
 export default function AuthFlow({ mode = "login", setLoggedIn }) {
   const navigate = useNavigate();
 
-  const [role, setRole] = useState("customer");
-  const [method, setMethod] = useState("otp");
-  const [step, setStep] = useState("phone");
+  // ROLE should not be pre-selected
+  const [role, setRole] = useState("");
 
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const [otp, setOtp] = useState("");
-  const [timer, setTimer] = useState(0);
   const [error, setError] = useState("");
 
-  // OTP timer
-  useEffect(() => {
-    if (timer <= 0) return;
-    const t = setTimeout(() => setTimer(timer - 1), 1000);
-    return () => clearTimeout(t);
-  }, [timer]);
-
-  const sendOTP = () => {
-    if (!phone) {
-      setError("Enter phone number to continue");
-      return;
-    }
-    setError("");
-    setStep("otp");
-    setTimer(30);
+  const roleMap = {
+    customer: "CUSTOMER",
+    cook: "HOMEMAKER",
+    delivery: "DELIVERY",
+    admin: "ADMIN",
   };
 
-  const confirmOTP = () => {
-    if (otp !== "1234") {
-      setError("That code didn’t match. Try again.");
+  /* ================= SIGNUP ================= */
+
+  const handleSignup = async () => {
+    if (!role) {
+      setError("Please select a role");
       return;
     }
-    finishAuth();
+
+    try {
+      const backendRole = roleMap[role];
+
+      const payload = {
+        name,
+        phone,
+        email,
+        password
+      };
+
+      let url = "";
+
+      if (backendRole === "CUSTOMER") url = `${API}/signup/customer`;
+      if (backendRole === "HOMEMAKER") url = `${API}/signup/homemaker`;
+      if (backendRole === "DELIVERY") url = `${API}/signup/delivery`;
+      if (backendRole === "ADMIN") url = `${API}/signup/admin`;
+
+      await axios.post(url, payload);
+
+      alert("Signup successful. Please login.");
+
+      navigate("/login");
+    } catch (err) {
+      console.error(err);
+      setError("Signup failed");
+    }
+
+    
   };
 
   const finishAuth = () => {
@@ -95,7 +115,8 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
             {mode === "login" ? "Welcome back" : "Create your account"}
           </h2>
 
-          {/* ROLE SELECTOR */}
+          {/* ROLE SELECTOR — hidden for admin email */}
+          {!(mode === "login" && email === "admin@maybhojan.com") && (
           <div className="grid grid-cols-2 gap-3 mt-8">
             {roles.map((r) => (
               <button
@@ -114,106 +135,68 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
               </button>
             ))}
           </div>
-
-          {/* METHOD SWITCH */}
-          <div className="flex gap-2 mt-6 bg-gray-100 p-1 rounded-xl">
-            {["otp", "email", "password"].map((m) => (
-              <button
-                key={m}
-                onClick={() => {
-                  setMethod(m);
-                  setStep("phone");
-                  setError("");
-                }}
-                className={`flex-1 py-2 rounded-lg text-sm font-semibold
-                  ${method === m ? "bg-white shadow" : "text-gray-600"}
-                `}
-              >
-                {m === "otp" && "Phone OTP"}
-                {m === "email" && "Email Link"}
-                {m === "password" && "Password"}
-              </button>
-            ))}
-          </div>
-
-          {/* OTP */}
-          {method === "otp" && step === "phone" && (
-            <>
-              <input
-                placeholder="Phone number"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full mt-6 px-4 py-4 border rounded-xl"
-              />
-              {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-              <button
-                onClick={sendOTP}
-                className="w-full mt-4 bg-orange-500 text-white py-4 rounded-xl font-semibold"
-              >
-                Send OTP
-              </button>
-            </>
           )}
 
-          {method === "otp" && step === "otp" && (
-            <>
-              <input
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                className="w-full mt-6 px-4 py-4 border rounded-xl text-center text-2xl tracking-widest"
-                placeholder="••••"
-              />
-              {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-              <button
-                onClick={confirmOTP}
-                className="w-full mt-4 bg-orange-500 text-white py-4 rounded-xl font-semibold"
-              >
-                Confirm
-              </button>
-            </>
+          {/* NAME (Signup only) */}
+
+          {mode === "signup" && (
+            <input
+              placeholder="Full Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full mt-6 px-4 py-4 border rounded-xl"
+            />
+          )}
+
+          {/* PHONE */}
+
+          {mode === "signup" && (
+            <input
+              placeholder="Phone Number"
+              value={phone}
+              maxLength={10}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full mt-4 px-4 py-4 border rounded-xl"
+            />
           )}
 
           {/* EMAIL */}
-          {method === "email" && (
-            <>
-              <input
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full mt-6 px-4 py-4 border rounded-xl"
-              />
-              <button
-                onClick={finishAuth}
-                className="w-full mt-4 bg-orange-500 text-white py-4 rounded-xl font-semibold"
-              >
-                Send sign-in link
-              </button>
-            </>
-          )}
+
+          <input
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full mt-4 px-4 py-4 border rounded-xl"
+          />
 
           {/* PASSWORD */}
-          {method === "password" && (
-            <>
-              <input
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full mt-6 px-4 py-4 border rounded-xl"
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full mt-4 px-4 py-4 border rounded-xl"
-              />
-              <button
-                onClick={finishAuth}
-                className="w-full mt-4 bg-orange-500 text-white py-4 rounded-xl font-semibold"
-              >
-                Login
-              </button>
-            </>
+
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full mt-4 px-4 py-4 border rounded-xl"
+          />
+
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+
+          {/* BUTTON */}
+
+          {mode === "signup" ? (
+            <button
+              onClick={handleSignup}
+              className="w-full mt-4 bg-orange-500 text-white py-4 rounded-xl font-semibold"
+            >
+              Sign Up
+            </button>
+          ) : (
+            <button
+              onClick={handleLogin}
+              className="w-full mt-4 bg-orange-500 text-white py-4 rounded-xl font-semibold"
+            >
+              Login
+            </button>
           )}
 
           <p className="text-xs text-gray-500 text-center mt-8">

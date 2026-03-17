@@ -11,51 +11,40 @@ export default function CookSidebar() {
   const item =
     "flex items-center gap-3 px-5 py-3 rounded-xl text-gray-700 hover:bg-orange-50 transition";
 
-  const active =
-    "bg-orange-100 text-orange-600 font-semibold";
+  const active = "bg-orange-100 text-orange-600 font-semibold";
 
   return (
-    <aside className="w-64 bg-white shadow-md shadow-black/5 flex flex-col justify-between h-225 fixed left-0 top-15">
-
-      {/* TOP MENU */}
+<aside className="w-64 bg-white shadow-md shadow-black/5 flex flex-col justify-between h-[calc(100vh-60px)] fixed left-0 top-[60px]">      {/* TOP MENU */}
       <div className="p-4 space-y-2">
-
         <NavLink
           to="/cook/orders"
           className={({ isActive }) =>
-            `${item} ${isActive ? active : ""}`
+            `${item} ${isActive || window.location.pathname === "/cook" ? active : ""}`
           }
         >
-          <i class="fa-solid fa-clipboard-list"></i> Daily Orders
+          <i className="fa-solid fa-clipboard-list"></i> Daily Orders
         </NavLink>
 
         <NavLink
           to="/cook/menu"
-          className={({ isActive }) =>
-            `${item} ${isActive ? active : ""}`
-          }
+          className={({ isActive }) => `${item} ${isActive ? active : ""}`}
         >
-          <i class="fa-solid fa-bars"></i> Manage Menu
+          <i className="fa-solid fa-bars"></i> Manage Menu
         </NavLink>
 
         <NavLink
           to="/cook/earnings"
-          className={({ isActive }) =>
-            `${item} ${isActive ? active : ""}`
-          }
+          className={({ isActive }) => `${item} ${isActive ? active : ""}`}
         >
-          <i class="fa-solid fa-wallet"></i> Earnings
+          <i className="fa-solid fa-wallet"></i> Earnings
         </NavLink>
 
         <NavLink
           to="/cook/kitchen"
-          className={({ isActive }) =>
-            `${item} ${isActive ? active : ""}`
-          }
+          className={({ isActive }) => `${item} ${isActive ? active : ""}`}
         >
-          <i class="fa-solid fa-gear"></i> Kitchen Info
+          <i className="fa-solid fa-gear"></i> Kitchen Info
         </NavLink>
-
       </div>
 
       {/* LOGOUT */}
@@ -64,11 +53,10 @@ export default function CookSidebar() {
           onClick={logout}
           className="flex items-center gap-3 text-red-500 px-5 py-3 rounded-xl hover:bg-red-50 w-full"
         >
-                      <i className="fa-solid fa-arrow-right-from-bracket text-sm"></i>
-                      Logout
+          <i className="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+          Logout
         </button>
       </div>
-
     </aside>
   );
 }

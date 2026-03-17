@@ -1,227 +1,208 @@
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { getUser } from "../../../utils/getUser";
 export default function DeliveryDashboard() {
-  const orders = [
-    {
-      id: 1,
-      kitchen: "Meera's Homestyle Kitchen",
-      address: "Green Valley Apartments, Sector 4",
-      distance: "1.2 km",
-      earn: 45,
-      status: "Ready in 5 mins",
-      drop: "Student Housing Block B",
-      items: "2x Paneer Butter Masala, 4x Butter Naan",
-    },
-    {
-      id: 2,
-      kitchen: "Aunty's Spice Box",
-      address: "Rosewood Residency, Lane 2",
-      distance: "2.8 km",
-      earn: 65,
-      status: "Ready in 12 mins",
-      drop: "Library North Gate",
-      items: "1x Special Veg Thali, 1x Mango Lassi",
-    },
-    {
-      id: 3,
-      kitchen: "Dadi's Special Rasoi",
-      address: "Sunrise Villas, Block C",
-      distance: "0.8 km",
-      earn: 35,
-      status: "Ready Now",
-      drop: "Engineering Faculty Entrance",
-      items: "3x Homemade Paratha, 1x Aloo Gobi",
-    },
-  ];
+  const navigate = useNavigate();
 
-  return (
-    <div className=" bg-[#F6F2EF] min-h-screen p-8">
+  const [orders, setOrders] = useState([]);
+  const [toast, setToast] = useState(null);
+  const user = getUser();
+  const partnerId = user?.id;
+  const API = "http://localhost:8080/api/delivery";
 
-      {/* HEADER */}
-      <div className="flex justify-between items-center mb-8">
+  /* CHECK IF DELIVERY IS APPROVED */
 
-        <div>
-          <h1 className="text-3xl font-bold">
-            Available Deliveries
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Nearby orders waiting for a delivery partner.
-          </p>
-        </div>
+  useEffect(() => {
 
-        <div className="flex gap-4">
+    if (!user) {
+      navigate("/login");
+      return;
+    }
 
-          <Stat label="Today's Pay" value="₹1,420" />
-          <Stat label="Orders" value="12" />
-          <Stat label="Rating" value="4.9" />
+    if (user.accountStatus !== "ACTIVE") {
+      navigate("/delivery/onboarding");
+      return;
+    }
 
-        </div>
-      </div>
+    loadOrders();
 
-      {/* MAIN GRID */}
-      <div className="grid grid-cols-[2fr_1fr] gap-8">
+    const interval = setInterval(() => {
+      loadOrders();
+    }, 5000);
 
-        {/* LEFT COLUMN — ORDERS */}
-        <div className="space-y-6">
+    return () => clearInterval(interval);
+  }, []);
 
-          {orders.map(o => (
-            <div key={o.id}
-              className="bg-white rounded-2xl p-6 shadow-sm border">
+  /* LOAD AVAILABLE ORDERS */
 
-              <div className="flex justify-between">
+  async function loadOrders() {
+    try {
+      const res = await axios.get(`${API}/orders`);
 
-                <div>
-                  <h3 className="font-semibold">
-                    {o.kitchen}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {o.address}
-                  </p>
-                </div>
+      const mapped = res.data.map((o) => ({
+        id: o.id,
+        kitchen: o.kitchenName || "Homemaker Kitchen",
+        pickup:
+          o.house + ", " +
+          o.area + ", " +
+          o.landmark + " - " +
+          o.pincode,
+        earn: o.deliveryFee || 40,
+        status: o.status,
+        total: o.total
+      }));
 
-                <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm">
-                  {o.distance}
-                </span>
+      setOrders(mapped);
+    } catch (err) {
+      console.error("Error loading orders", err);
+    }
+  }
 
-              </div>
+  /* ACCEPT ORDER */
+  async function acceptOrder(order) {
+    try {
+      await axios.put(`${API}/accept/${order.id}?partnerId=${partnerId}`);
 
-              {/* EARN + STATUS */}
-              <div className="grid grid-cols-2 gap-4 mt-4">
+      setOrders((prev) => prev.filter((o) => o.id !== order.id));
 
-                <InfoBox
-                  title="You earn"
-                  value={`₹${o.earn}`}
-                />
+      setToast("Order Accepted");
 
-                <InfoBox
-                  title="Status"
-                  value={o.status}
-                />
+      setTimeout(() => setToast(null), 2000);
 
-              </div>
 
-              {/* DETAILS */}
-              <div className="text-sm text-gray-600 mt-4 space-y-1">
+      // remove order from available list
+      setOrders((prev) => prev.filter((o) => o.id !== order.id));
 
-                <p>Drop-off: {o.drop}</p>
-                <p>🛵 {o.items}</p>
+      // redirect to active delivery page
 
-              </div>
+      setOrders(prev => prev.filter(o => o.id !== order.id));
 
-              {/* ACTIONS */}
-              <div className="flex gap-4 mt-6">
+      navigate("/delivery/active");
+    } catch (err) {
+      console.error("Accept order error", err);
+    }
+  }
 
-                <button className="flex-1 border border-red-300 text-red-500 py-3 rounded-xl hover:bg-red-50">
-                  Decline
-                </button>
+  setToast("Order Declined ❌");
 
-                <button className="flex-1 bg-orange-500 text-white py-3 rounded-xl font-semibold">
-                  Accept Order
-                </button>
+  setTimeout(() => setToast(null), 2000);
+}
 
-              </div>
+return (
+  <div className="bg-[#F6F2EF] min-h-screen p-8">
+    <h1 className="text-3xl font-bold mb-6">Available Deliveries</h1>
 
-            </div>
-          ))}
+    {orders.length === 0 && (
+      <p className="text-gray-500">No delivery orders available right now</p>
+    )}
 
-        </div>
+    <div className="space-y-6">
+      {orders.map((o) => (
+        <div key={o.id} className="bg-white p-6 rounded-xl shadow border">
+          <h3 className="font-semibold text-lg">Order #{o.id}</h3>
 
-        {/* RIGHT COLUMN — SAFETY */}
-        <div className="space-y-6">
+          <p className="text-sm text-gray-500">Kitchen: {o.kitchen}</p>
 
-          <SideCard title="Safety & Hygiene">
-            <Tip text="Always wear your mask and sanitize hands before pickup." />
-            <Tip text="Arrive on time to keep meals warm." />
-            <Tip text="Follow customer contactless delivery preferences." />
-          </SideCard>
+          <p className="text-sm text-gray-500">Pickup Address: {o.pickup}</p>
 
-          <SideCard title="Delivery Guidelines">
-            <Accordion title="Pickup Procedure" />
-            <Accordion title="Spillage Policy" />
-            <Accordion title="Student Incentives" />
-          </SideCard>
+          <p className="text-sm text-gray-500">Delivery Fee: ₹{o.earn}</p>
 
-          <div className="bg-orange-100 rounded-2xl p-6 text-center">
+          <p className="text-sm text-gray-500">Order Total: ₹{o.total}</p>
 
-            <h3 className="font-semibold">
-              Top Student Partner
-            </h3>
+          <p className="text-sm text-gray-500">Status: {o.status}</p>
 
-            <p className="text-sm mt-2">
-              You've helped 240+ families enjoy fresh meals.
-            </p>
-
-            <button className="mt-4 bg-white px-4 py-2 rounded-xl">
-              View Success Story
+          <div className="flex gap-4 mt-4">
+            <button
+              onClick={() => declineOrder(o.id)}
+              className="flex-1 border border-red-400 text-red-500 py-2 rounded hover:bg-red-50"
+            >
+              Decline
             </button>
 
+            <button
+              onClick={() => acceptOrder(o)}
+              className="flex-1 bg-orange-500 text-white py-2 rounded hover:bg-orange-600"
+            >
+              Accept Order
+            </button>
           </div>
-
         </div>
+      ))}
+    </div>
 
+    {/* TOAST MESSAGE */}
+
+    {toast && (
+      <div className="fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded shadow-lg">
+        {toast}
       </div>
+    )}
+  </div>
+);
+  function declineOrder(orderId) {
+    setOrders((prev) => prev.filter((o) => o.id !== orderId));
 
-    </div>
-  );
-}
+    setToast("Order declined");
 
-/* ---------- UI HELPERS ---------- */
+    setTimeout(() => setToast(null), 2000);
+  }
 
-function Stat({ label, value }) {
-  return (
-    <div className="bg-white rounded-xl px-4 py-3 shadow-sm text-center">
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="font-bold">{value}</p>
-    </div>
-  );
-}
+  return (                
+    <div className="bg-[#F6F2EF] min-h-screen p-8">
+      <h1 className="text-3xl font-bold mb-6">Available Deliveries</h1>
 
-function InfoBox({ title, value }) {
-  return (
-    <div className="bg-gray-50 rounded-xl p-4">
-      <p className="text-xs text-gray-500">{title}</p>
-      <p className="font-semibold mt-1">{value}</p>
-    </div>
-  );
-}
+      <h1 className="text-3xl font-bold mb-6">
+        Available Deliveries
+      </h1>
 
-function SideCard({ title, children }) {
-  return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm">
-      <h3 className="font-semibold mb-4">{title}</h3>
-      <div className="space-y-3">{children}</div>
-    </div>
-  );
-}
-
-function Tip({ text }) {
-  return (
-    <div className="bg-gray-50 p-3 rounded-lg text-sm">
-      {text}
-    </div>
-  );
-}
-
-function Accordion({ title }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="border rounded-xl">
-
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex justify-between px-4 py-3 text-sm font-medium"
-      >
-        {title}
-        {open ? "−" : "+"}
-      </button>
-
-      {open && (
-        <div className="px-4 pb-4 text-sm text-gray-600">
-          Guideline details appear here.
-        </div>
+      {orders.length === 0 && (
+        <p className="text-gray-500">
+          No delivery orders available right now
+        </p>
       )}
 
+      <div className="space-y-6">
+        {orders.map((o) => (
+          <div key={o.id} className="bg-white p-6 rounded-xl shadow border">
+            <h3 className="font-semibold text-lg">Order #{o.id}</h3>
+
+            <p className="text-sm text-gray-500">Kitchen: {o.kitchen}</p>
+
+            <p className="text-sm text-gray-500">Pickup Address: {o.pickup}</p>
+
+            <p className="text-sm text-gray-500">Delivery Fee: ₹{o.earn}</p>
+
+            <p className="text-sm text-gray-500">Order Total: ₹{o.total}</p>
+
+            <p className="text-sm text-gray-500">Status: {o.status}</p>
+
+            <div className="flex gap-4 mt-4">
+              <button
+                onClick={() => declineOrder(o.id)}
+                className="flex-1 border border-red-400 text-red-500 py-2 rounded"
+              >
+                Decline
+              </button>
+
+              <button
+                onClick={() => acceptOrder(o)}
+                className="flex-1 bg-orange-500 text-white py-2 rounded"
+              >
+                Accept Order
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {toast && (
+        <div className="fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded">
+
+        <div className="fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded shadow-lg">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

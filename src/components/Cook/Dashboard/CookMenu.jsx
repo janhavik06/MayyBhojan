@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getMenu, addDish } from "../../../services/menuService";
 
 export default function CookMenu() {
   const [filter, setFilter] = useState("all");
@@ -73,7 +74,10 @@ export default function CookMenu() {
             start receiving orders.
           </p>
 
-          <button className="mt-6 bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold">
+          <button
+            onClick={() => setShowAddDish(true)}
+            className="mt-6 bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold"
+          >
             Get Started
           </button>
         </div>
@@ -90,12 +94,10 @@ export default function CookMenu() {
                   key={f}
                   onClick={() => setFilter(f)}
                   className={`px-4 py-2 rounded-full text-sm border
-                    ${
-                      filter === f
-                        ? "bg-orange-500 text-white border-orange-500"
-                        : "bg-white border-gray-300"
-                    }
-                  `}
+                    ${filter === f
+                      ? "bg-orange-500 text-white border-orange-500"
+                      : "bg-white border-gray-300"
+                    }`}
                 >
                   {f.toUpperCase()}
                 </button>
@@ -133,10 +135,6 @@ export default function CookMenu() {
     </div>
   );
 }
-
-////////////////////////////
-// SMALL COMPONENTS
-////////////////////////////
 
 function StatCard({ label, value }) {
   return (
@@ -183,9 +181,77 @@ function DishCard({ dish }) {
           ))}
         </div>
 
-        <div className="flex justify-between text-sm mt-4 text-gray-600">
-          <span>⏱ {dish.time}</span>
-          <span>📦 {dish.orders} Orders</span>
+  async function handleSubmit() {
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    await addDish(user.id, dish);
+
+    await refreshMenu();
+
+    close();
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-start justify-center pt-24 px-4 z-50 overflow-y-auto">
+      <div className="bg-white rounded-2xl w-full max-w-md p-8 shadow-xl">
+        <h2 className="text-xl font-bold mb-6">Add New Dish</h2>
+
+        <div className="space-y-5">
+          <Input
+            label="Dish Name"
+            name="name"
+            value={dish.name}
+            onChange={handleChange}
+          />
+
+          <Input
+            label="Price (₹)"
+            name="price"
+            value={dish.price}
+            onChange={handleChange}
+          />
+
+          <div>
+            <label className="text-sm font-medium">Dish Type</label>
+
+            <div className="flex gap-3 mt-2">
+              <button
+                type="button"
+                onClick={() => setDish({ ...dish, type: "veg" })}
+                className={`px-4 py-2 rounded-full border text-sm
+                ${dish.type === "veg"
+                    ? "bg-green-500 text-white border-green-500"
+                    : "bg-white border-gray-300"
+                  }`}
+              >
+                Veg
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDish({ ...dish, type: "nonveg" })}
+                className={`px-4 py-2 rounded-full border text-sm
+                ${dish.type === "nonveg"
+                    ? "bg-red-500 text-white border-red-500"
+                    : "bg-white border-gray-300"
+                  }`}
+              >
+                Non-Veg
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Dish Photo</label>
+
+            <input
+              type="file"
+              onChange={(e) =>
+                setDish({ ...dish, image: e.target.files[0] })
+              }
+              className="mt-2"
+            />
+          </div>
         </div>
 
         <button className="mt-4 border w-full py-3 rounded-xl text-sm hover:bg-gray-50">
@@ -196,11 +262,17 @@ function DishCard({ dish }) {
   );
 }
 
-function Tip({ title, children }) {
+function Input({ label, name, value, onChange }) {
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm">
-      <h4 className="font-semibold">{title}</h4>
-      <p className="text-gray-600 mt-2">{children}</p>
+    <div>
+      <label className="text-sm font-medium">{label}</label>
+
+      <input
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="w-full mt-2 px-4 py-3 border rounded-xl"
+      />
     </div>
   );
 }

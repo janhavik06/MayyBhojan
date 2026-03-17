@@ -6,7 +6,7 @@ import d5 from "../../assets/d5.jpg";
 import d6 from "../../assets/d6.jpg";
 import d7 from "../../assets/d7.jpg";
 import d8 from "../../assets/d8.jpg";
-
+import { useNavigate } from "react-router-dom";
 export default function Home5() {
   const dishes = [
     {
@@ -74,11 +74,10 @@ export default function Home5() {
       img: d8,
     },
   ];
-
+  const navigate = useNavigate();
   return (
     <section className="py-20">
       <div className="max-w-7xl mx-auto px-6">
-
         {/* Header */}
         <div className="flex justify-between items-end mb-10">
           <div>
@@ -97,7 +96,6 @@ export default function Home5() {
 
         {/* Grid */}
         <div className="grid md:grid-cols-4 gap-8">
-
           {dishes.map((dish) => (
             <div
               key={dish.id}
@@ -118,27 +116,25 @@ export default function Home5() {
 
               {/* Content */}
               <div className="p-5">
-                <h3 className="font-semibold text-lg">
-                  {dish.title}
-                </h3>
+                <h3 className="font-semibold text-lg">{dish.title}</h3>
 
                 <p className="text-gray-500 text-sm mt-1">
                   from {dish.kitchen}
                 </p>
 
                 <div className="mt-4 flex justify-between items-center">
-                  <span className="font-bold text-lg">
-                    ₹{dish.price}
-                  </span>
+                  <span className="font-bold text-lg">₹{dish.price}</span>
 
-                  <button className="bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:opacity-90">
+                  <button
+                    onClick={() => navigate("/login")}
+                    className="bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:opacity-90"
+                  >
                     + Add
                   </button>
                 </div>
               </div>
             </div>
           ))}
-
         </div>
       </div>
     </section>

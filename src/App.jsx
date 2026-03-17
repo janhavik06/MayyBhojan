@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
-
+import { Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import About from "./components/Navbar/About";
 import How from "./components/Navbar/How";
@@ -42,9 +42,84 @@ export default function App() {
   });
 
   return (
+    //     <BrowserRouter>
+    //       <ScrollToTop />
+    //       <Routes>
+    //         <Route
+    //           element={<Layout loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}
+    //         >
+    //           <Route path="/" element={<HomePage />} />
+    //           <Route path="/custalogin" element={<CustALogin />} />
+    //           <Route path="/cust" element={<CustALogin />} />
+    //           <Route path="/explore" element={<CustALogin />} />
+
+    //           <Route path="/food/:id" element={<FoodDetail />} />
+
+    //           <Route path="/login" element={<Login setLoggedIn={setLoggedIn} />} />
+
+    //           <Route
+    //             path="/signup"
+    //             element={<Signup setLoggedIn={setLoggedIn} />}
+    //           />
+    //           <Route path="/cart" element={<Cart />} />
+
+    //           <Route path="/address" element={<Address />} />
+    //           <Route path="/payment" element={<Payment />} />
+    //           <Route path="/confirm" element={<Confirmation />} />
+    //           <Route element={<DashboardLayout />}>
+    //             <Route path="/profile" element={<Profile />} />
+    //             <Route path="/settings" element={<Settings />} />
+    //             <Route path="/orders" element={<Profile />} />
+    //             <Route path="/favorites" element={<Favorites />} />
+    //           </Route>
+
+    //           <Route element={<CookLayout />}>
+    //             <Route path="/cook" element={<CookDashboard />} />
+    //             <Route
+    //               path="/cook/identity"
+    //               element={<CookIdentityVerification />}
+    //             />
+    //             <Route path="cookdashboard" element={<CookDashboard />} />
+    //             <Route path="/cook/orders" element={<CookDashboard />} />
+
+    //             <Route path="/cook/menu" element={<CookMenu />} />
+    //             <Route path="/cook/earnings" element={<CookEarnings />} />
+    //             <Route path="/cook/kitchen" element={<CookKitchenInfo />} />
+    //             <Route path="/cook/dashboard" element={<CookDashboard />} />
+    //             {/* <Route path="/cook/basic" element={<CookBasicDetails />} />
+    //             <Route path="/cook/kitchen" element={<CookKitchenSetup />} />
+    //             <Route path="/cook/payout" element={<CookPayoutSetup />} /> */}
+    //           </Route>
+
+    //           <Route path="/cook/login" element={<CookALogin />} />
+    //           {/* <Route path="/delivery" element={<DeliveryDashboard />} />
+    // <Route path="/admin" element={<AdminDashboard />} /> */}
+
+    //           <Route path="/cook/verification" element={<CookVerification />} />
+    //           <Route path="/cook/bank" element={<CookBankSetup />} />
+
+    //           <Route element={<DeliveryLayout />}>
+    //             <Route path="/delivery" element={<DeliveryDashboard />} />
+    //             <Route path="/delivery/active" element={<ActiveOrder />} />
+    //             <Route path="/delivery/wallet" element={<DeliveryWallet />} />
+    //           </Route>
+
+    //           <Route element={<AdminLayout />}>
+    //             <Route path="/admin" element={<AdminDashboard />} />
+    //             <Route path="/admin/approvals" element={<AdminApprovals />} />
+    //             <Route path="/admin/safety" element={<AdminTrustSafety />} />
+    //           </Route>
+    //           <Route path="/about" element={<About />} />
+    //           <Route path="/how" element={<How />} />
+    //         </Route>
+    //       </Routes>
+    //     </BrowserRouter>
+
     <BrowserRouter>
       <ScrollToTop />
+
       <Routes>
+        {/* PUBLIC LAYOUT (Navbar + Footer) */}
         <Route
           element={<Layout loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}
         >
@@ -52,20 +127,23 @@ export default function App() {
           <Route path="/custalogin" element={<CustALogin />} />
           <Route path="/cust" element={<CustALogin />} />
           <Route path="/explore" element={<CustALogin />} />
-
           <Route path="/food/:id" element={<FoodDetail />} />
 
           <Route path="/login" element={<Login setLoggedIn={setLoggedIn} />} />
-
           <Route
             path="/signup"
             element={<Signup setLoggedIn={setLoggedIn} />}
           />
-          <Route path="/cart" element={<Cart />} />
+          <Route
+ path="/admin/delivery-approvals"
+ element={<AdminDeliveryApprovals />}
+/>
 
+          <Route path="/cart" element={<Cart />} />
           <Route path="/address" element={<Address />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/confirm" element={<Confirmation />} />
+
           <Route element={<DashboardLayout />}>
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
@@ -73,36 +151,51 @@ export default function App() {
             <Route path="/favorites" element={<Favorites />} />
           </Route>
 
-          <Route element={<CookLayout />}>
-            <Route path="cookdashboard" element={<CookDashboard />} />
-            <Route path="/cook/orders" element={<CookDashboard />} />
-
-            <Route path="/cook/menu" element={<CookMenu />} />
-            <Route path="/cook/earnings" element={<CookEarnings />} />
-            <Route path="/cook/kitchen" element={<CookKitchenInfo />} />
-          </Route>
-
-          <Route path="/cook" element={<CookALogin />} />
-          {/* <Route path="/delivery" element={<DeliveryDashboard />} />
-<Route path="/admin" element={<AdminDashboard />} /> */}
+          <Route path="/cook/login" element={<CookALogin />} />
           <Route path="/cook/verification" element={<CookVerification />} />
           <Route path="/cook/identity" element={<CookIdentityVerification />} />
 
           <Route path="/cook/bank" element={<CookBankSetup />} />
 
-          <Route element={<DeliveryLayout />}>
-            <Route path="/delivery" element={<DeliveryDashboard />} />
-            <Route path="/delivery/active" element={<ActiveOrder />} />
-            <Route path="/delivery/wallet" element={<DeliveryWallet />} />
-          </Route>
+          <Route path="/about" element={<About />} />
+          <Route path="/how" element={<How />} />
+        </Route>
+        {/* COOK DASHBOARD (NO FOOTER) */}
+        <Route element={<CookLayout />}>
+          <Route path="/cook" element={<CookDashboard />} />
+          <Route path="/cook/dashboard" element={<CookDashboard />} />
+          <Route path="/cook/orders" element={<CookDashboard />} />
+          <Route path="/cook/menu" element={<CookMenu />} />
+          <Route path="/cook/earnings" element={<CookEarnings />} />
+          <Route path="/cook/kitchen" element={<CookKitchenInfo />} />
+          <Route path="/cook/identity" element={<CookIdentityVerification />} />
+        </Route>
+       {/* DELIVERY ONBOARDING */}
+<Route element={<DeliveryOnboardingLayout />}>
+  <Route path="/delivery/onboarding" element={<DeliveryOnboarding />} />
+  <Route path="/delivery/identity" element={<DeliveryIdentity />} />
+  <Route path="/delivery/verification" element={<DeliveryVerification />} />
+  <Route path="/delivery/vehicle" element={<VehicleSetup />} />
+</Route>
+      {/* DELIVERY DASHBOARD */}
+<Route element={<DeliveryLayout />}>
 
+  <Route path="/delivery" element={<DeliveryDashboard />} />
+  
+  {/* ADD THIS */}
+  <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
+
+  <Route path="/delivery/active" element={<ActiveOrder />} />
+  <Route path="/delivery/wallet" element={<DeliveryWallet />} />
+
+</Route>
+        {/* ADMIN DASHBOARD */}
+        <Route element={<ProtectedRoute allowedRole="ADMIN" />}>
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/approvals" element={<AdminApprovals />} />
             <Route path="/admin/safety" element={<AdminTrustSafety />} />
           </Route>
-          <Route path="/about" element={<About />} />
-          <Route path="/how" element={<How />} />
         </Route>
       </Routes>
     </BrowserRouter>

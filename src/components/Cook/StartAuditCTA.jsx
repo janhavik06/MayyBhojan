@@ -11,13 +11,27 @@ export default function StartAuditCTA({
   const [refId, setRefId] = useState(null);
   const [showMissing, setShowMissing] = useState(false);
 
-  const startVerification = async () => {
+  // Check current account status on load
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) return;
+    if (user.accountStatus === "UNDER_REVIEW") setStatus("pending");
+    if (user.accountStatus === "ACTIVE") setStatus("approved");
+    if (user.accountStatus === "REJECTED") setStatus("rejected");
+  }, []);
+
+  const applyForVerification = async () => {
+
     if (!docsReady) {
       setShowMissing(true);
       return;
     }
 
-    setSubmitting(true);
+    try {
+
+      setLoading(true);
+
+      const user = JSON.parse(localStorage.getItem("user"));
 
     setTimeout(() => {
       const ref = "MBV-" + Math.floor(100 + Math.random() * 900);
@@ -97,16 +111,15 @@ export default function StartAuditCTA({
     );
   }
 
+  /* ---------- MAIN BUTTON ---------- */
+
   return (
     <>
-      {/* CTA */}
       <button
-        aria-label={`Start verification for ${kitchenName}`}
-        onClick={() => setOpenConfirm(true)}
-        disabled={!docsReady}
+        onClick={applyForVerification}
+        disabled={!docsReady || loading}
         className={`
           w-full h-14 rounded-xl font-semibold text-white text-lg
-          shadow-[0_8px_20px_rgba(224,122,110,0.06)]
           flex items-center justify-center gap-3
           transition
           ${
@@ -116,12 +129,12 @@ export default function StartAuditCTA({
           }
         `}
       >
-        🛡 Start verification
+        {loading ? "Submitting..." : "📩 Apply for Verification"}
       </button>
 
       {!docsReady && (
         <p className="text-sm text-gray-500 mt-2">
-          Please upload required documents to continue.
+          Please complete previous steps first.
         </p>
       )}
 
@@ -156,36 +169,43 @@ export default function StartAuditCTA({
         </Modal>
       )}
 
-      {/* MISSING DOCS */}
       {showMissing && (
-        <Modal title="Documents missing" onClose={() => setShowMissing(false)}>
+        <Modal
+          title="Requirements not met"
+          onClose={() => setShowMissing(false)}
+        >
           <p className="text-gray-600">
             Please upload ID proof and kitchen photos before starting
             verification.
           </p>
 
-          <button className="w-full mt-5 bg-[#F5A87A] text-white py-3 rounded-xl font-semibold">
-            Upload now
+          <button
+            onClick={() => setShowMissing(false)}
+            className="w-full mt-5 bg-[#F5A87A] text-white py-3 rounded-xl font-semibold"
+          >
+            Okay
           </button>
+
         </Modal>
       )}
+
     </>
   );
 }
 
-/////////////////////////
-// GENERIC MODAL
-/////////////////////////
+/* ---------- MODAL COMPONENT ---------- */
 
 function Modal({ title, children, onClose }) {
+
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div
-        role="dialog"
-        aria-modal="true"
-        className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl"
-      >
-        <h2 className="font-bold text-xl mb-4">{title}</h2>
+
+      <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
+
+        <h2 className="font-bold text-xl mb-4">
+          {title}
+        </h2>
+
         {children}
 
         <button
@@ -194,7 +214,10 @@ function Modal({ title, children, onClose }) {
         >
           Close
         </button>
+
       </div>
+
     </div>
   );
+
 }
