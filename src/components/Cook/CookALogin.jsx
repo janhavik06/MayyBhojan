@@ -8,19 +8,48 @@ export default function CookALogin() {
     return saved
       ? JSON.parse(saved)
       : {
-          identity: true,
+          identity: false, // ✅ FIXED (was true before)
           documents: false,
           audit: false,
           banking: false,
         };
   });
+
+  useEffect(() => {
+    // ✅ detect new signup (you can customize condition)
+    const isNewUser = localStorage.getItem("new_signup");
+
+    if (isNewUser === "true") {
+      localStorage.removeItem("cook_onboarding_steps");
+      localStorage.removeItem("audit_requests");
+      localStorage.removeItem("my_audit_id");
+
+      // reset flag
+      localStorage.setItem("new_signup", "false");
+
+      // reset steps state
+      setSteps({
+        identity: false,
+        documents: false,
+        audit: false,
+        banking: false,
+      });
+    }
+  }, []);
+
   useEffect(() => {
     localStorage.setItem("cook_onboarding_steps", JSON.stringify(steps));
   }, [steps]);
 
   const navigate = useNavigate();
 
-  const completed = Object.values(steps).filter(Boolean).length;
+  // ✅ STEP ORDER (NEW)
+  const stepOrder = ["identity", "documents", "banking", "audit"];
+  // ✅ CURRENT STEP INDEX (NEW)
+  const currentStepIndex = stepOrder.findIndex((step) => !steps[step]);
+
+  // ✅ COMPLETED COUNT (FIXED)
+  const completed = currentStepIndex === -1 ? 4 : currentStepIndex;
 
   function completeStep(key) {
     setSteps((prev) => {
@@ -60,21 +89,39 @@ export default function CookALogin() {
             <span>{completed} of 4 Completed</span>
           </div>
 
+          {/* ✅ STEP 1 */}
           <ChecklistCard
             title="Identity Verification"
             desc="Confirm your account details securely."
             done={steps.identity}
-            button="Verified"
+            active={currentStepIndex === 0}
+            button="Start"
+            onClick={() => currentStepIndex === 0 && navigate("/cook/identity")}
           />
 
+          {/* ✅ STEP 2 */}
           <ChecklistCard
             title="Document Upload"
             desc="Upload Aadhaar / Voter ID"
-            active={!steps.documents}
+            done={steps.documents}
+            active={currentStepIndex === 1}
             button="Upload Documents"
-            onClick={() => navigate("/cook/verification")}
+            onClick={() =>
+              currentStepIndex === 1 && navigate("/cook/verification")
+            }
           />
 
+          {/* ✅ STEP 3 → BANKING */}
+          <ChecklistCard
+            title="Banking & Payouts"
+            desc="Add bank details for payments"
+            done={steps.banking}
+            active={currentStepIndex === 2}
+            button="Setup Bank"
+            onClick={() => currentStepIndex === 2 && navigate("/cook/bank")}
+          />
+
+          {/* ✅ STEP 4 → AUDIT */}
           <div className="mt-4">
             <div className="bg-white rounded-xl p-6 shadow-sm border border-orange-200">
               <h3 className="font-semibold">Hygiene & Safety Audit</h3>
@@ -85,19 +132,12 @@ export default function CookALogin() {
 
               <StartAuditCTA
                 kitchenName="Your Kitchen"
-                docsReady={steps.documents}
+                docsReady={steps.documents && steps.banking} // ✅ BOTH REQUIRED
                 onSubmit={() => completeStep("audit")}
+                disabled={currentStepIndex !== 3} // ✅ NOW STEP 4
               />
             </div>
           </div>
-
-          <ChecklistCard
-            title="Banking & Payouts"
-            desc="Add bank details for payments"
-            active={!steps.banking}
-            button="Setup Bank"
-            onClick={() => navigate("/cook/bank")}
-          />
         </section>
 
         {/* HELP SECTION */}
@@ -109,6 +149,7 @@ export default function CookALogin() {
     </div>
   );
 }
+
 function ProgressBar({ completed }) {
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 mt-8">
@@ -134,6 +175,7 @@ function ProgressBar({ completed }) {
     </div>
   );
 }
+
 function ChecklistCard({ title, desc, done, active, button, onClick }) {
   return (
     <div
@@ -152,7 +194,8 @@ function ChecklistCard({ title, desc, done, active, button, onClick }) {
         ) : (
           <button
             onClick={onClick}
-            className="bg-orange-500 text-white px-5 py-2 rounded-full text-sm"
+            disabled={!active} // ✅ PREVENT SKIP
+            className="bg-orange-500 text-white px-5 py-2 rounded-full text-sm disabled:opacity-50"
           >
             {button}
           </button>
@@ -161,6 +204,7 @@ function ChecklistCard({ title, desc, done, active, button, onClick }) {
     </div>
   );
 }
+
 function HelpSection() {
   return (
     <section className="mt-12">
@@ -183,6 +227,7 @@ function HelpSection() {
     </section>
   );
 }
+
 function Testimonial() {
   return (
     <section className="mt-12 bg-[#F2DED3] rounded-xl p-8 text-center">

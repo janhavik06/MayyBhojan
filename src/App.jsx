@@ -34,6 +34,7 @@ import AdminLayout from "./components/Admin/AdminLayout";
 import AdminDashboard from "./components/Admin/Dashboard/AdminDashboard";
 import AdminApprovals from "./components/Admin/Dashboard/AdminApprovals";
 import AdminTrustSafety from "./components/Admin/Dashboard/AdminTrustSafety";
+import CookIdentityVerification from "./components/Cook/CookIdentityVerification";
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(() => {
     const user = JSON.parse(localStorage.getItem("maybhojan_user"));
@@ -85,6 +86,8 @@ export default function App() {
           {/* <Route path="/delivery" element={<DeliveryDashboard />} />
 <Route path="/admin" element={<AdminDashboard />} /> */}
           <Route path="/cook/verification" element={<CookVerification />} />
+          <Route path="/cook/identity" element={<CookIdentityVerification />} />
+
           <Route path="/cook/bank" element={<CookBankSetup />} />
 
           <Route element={<DeliveryLayout />}>
@@ -97,7 +100,6 @@ export default function App() {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/approvals" element={<AdminApprovals />} />
             <Route path="/admin/safety" element={<AdminTrustSafety />} />
-
           </Route>
           <Route path="/about" element={<About />} />
           <Route path="/how" element={<How />} />

@@ -19,7 +19,7 @@ export default function CookBankSetup() {
   const [error, setError] = useState("");
 
   function update(field, value) {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm((prev) => ({ ...prev, [field]: value }));
   }
 
   function validate() {
@@ -48,7 +48,7 @@ export default function CookBankSetup() {
 
     localStorage.setItem(
       "cook_onboarding_steps",
-      JSON.stringify({ ...saved, banking: true })
+      JSON.stringify({ ...saved, banking: true }),
     );
 
     // simulate verification
@@ -56,40 +56,34 @@ export default function CookBankSetup() {
       setStatus("verified");
 
       setTimeout(() => {
-        navigate("/cookdashboard"); // change route if needed
+        navigate("/cook"); // change route if needed
       }, 1500);
-
     }, 2000);
   }
 
   return (
     <div className="min-h-screen bg-[#F6F2EF]">
       <main className="max-w-6xl mx-auto px-8 py-10 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-10">
-
         {/* LEFT FORM */}
         <div>
-
-          <h1 className="text-3xl font-bold">
-            Set up bank details
-          </h1>
+          <h1 className="text-3xl font-bold">Set up bank details</h1>
 
           <p className="text-gray-600 mt-2">
             So we can pay you for meals you sell. We keep your data safe.
           </p>
 
           <div className="bg-white shadow-sm border rounded-2xl p-8 mt-8 space-y-6">
-
             <Input
               label="Account holder name"
               value={form.name}
-              onChange={v => update("name", v)}
+              onChange={(v) => update("name", v)}
               placeholder="As on your bank account"
             />
 
             <Input
               label="Account number"
               value={form.account}
-              onChange={v => update("account", v)}
+              onChange={(v) => update("account", v)}
               placeholder="Enter account number"
               numeric
             />
@@ -97,7 +91,7 @@ export default function CookBankSetup() {
             <Input
               label="Confirm account number"
               value={form.confirm}
-              onChange={v => update("confirm", v)}
+              onChange={(v) => update("confirm", v)}
               placeholder="Re-enter account number"
               numeric
             />
@@ -105,20 +99,20 @@ export default function CookBankSetup() {
             <Input
               label="IFSC / Routing code"
               value={form.ifsc}
-              onChange={v => update("ifsc", v)}
+              onChange={(v) => update("ifsc", v)}
               placeholder="Find on cheque or bank site"
             />
 
             <Input
               label="Bank name"
               value={form.bank}
-              onChange={v => update("bank", v)}
+              onChange={(v) => update("bank", v)}
             />
 
             <Input
               label="Branch (optional)"
               value={form.branch}
-              onChange={v => update("branch", v)}
+              onChange={(v) => update("branch", v)}
             />
 
             {/* upload */}
@@ -131,13 +125,15 @@ export default function CookBankSetup() {
                 <input
                   type="file"
                   className="hidden"
-                  onChange={e => setFile(e.target.files[0])}
+                  onChange={(e) => setFile(e.target.files[0])}
                 />
 
                 <div className="border-2 border-dashed rounded-xl p-6 text-center bg-orange-50">
-                  {file
-                    ? <p className="text-green-600">{file.name}</p>
-                    : <p className="text-gray-600">Click to upload proof</p>}
+                  {file ? (
+                    <p className="text-green-600">{file.name}</p>
+                  ) : (
+                    <p className="text-gray-600">Click to upload proof</p>
+                  )}
                 </div>
               </label>
             </div>
@@ -147,9 +143,10 @@ export default function CookBankSetup() {
               <input
                 type="checkbox"
                 checked={form.consent}
-                onChange={e => update("consent", e.target.checked)}
+                onChange={(e) => update("consent", e.target.checked)}
               />
-              I confirm these details are correct and allow MayBhojan to deposit payments.
+              I confirm these details are correct and allow MayBhojan to deposit
+              payments.
             </label>
 
             {error && <p className="text-red-500">{error}</p>}
@@ -173,7 +170,6 @@ export default function CookBankSetup() {
             >
               Save & verify
             </button>
-
           </div>
         </div>
 
@@ -185,15 +181,12 @@ export default function CookBankSetup() {
             Your earnings will be safely deposited into this account.
           </p>
 
-          <p className="text-sm mt-6">
-            Approval usually takes 24–48 hours.
-          </p>
+          <p className="text-sm mt-6">Approval usually takes 24–48 hours.</p>
 
           <button className="mt-6 text-orange-500 font-semibold">
             Set up with help
           </button>
         </aside>
-
       </main>
     </div>
   );
@@ -206,7 +199,7 @@ function Input({ label, value, onChange, placeholder, numeric }) {
       <input
         type={numeric ? "number" : "text"}
         value={value}
-        onChange={e => onChange(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className="w-full mt-1 px-4 py-3 border rounded-xl"
       />

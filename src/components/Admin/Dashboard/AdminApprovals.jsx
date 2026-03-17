@@ -1,15 +1,32 @@
+import { useState, useEffect } from "react";
 
 export default function AdminApprovals() {
-  const kitchens = [
-    { name: "Dadi's Desi Tadka", owner: "Smt. Kamala Devi", city: "Indore", urgent: true },
-    { name: "The Healthy Pot", owner: "Mrs. Reena Sharma", city: "Pune", urgent: false },
-    { name: "Annapurna Rasoi", owner: "Smt. Shanti Iyer", city: "Chennai", urgent: false },
-    { name: "Pind Di Khushboo", owner: "Smt. Gurpreet Kaur", city: "Amritsar", urgent: false },
-  ];
+  const [kitchens, setKitchens] = useState([]);
+
+  useEffect(() => {
+    const data = JSON.parse(localStorage.getItem("audit_requests")) || [];
+
+    // ✅ only pending
+    const pending = data.filter((k) => k.status === "pending");
+
+    setKitchens(pending);
+  }, []);
+
+  function updateStatus(id, status) {
+    const data = JSON.parse(localStorage.getItem("audit_requests")) || [];
+
+    const updated = data.map((k) => (k.id === id ? { ...k, status } : k));
+
+    // update storage
+    localStorage.setItem("audit_requests", JSON.stringify(updated));
+
+    // ✅ keep only pending in UI
+    const pending = updated.filter((k) => k.status === "pending");
+    setKitchens(pending);
+  }
 
   return (
     <div className="space-y-8">
-
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
@@ -35,7 +52,9 @@ export default function AdminApprovals() {
       {/* FILTERS */}
       <div className="flex justify-between items-center">
         <div className="flex gap-4 font-semibold">
-          <span className="text-orange-600 border-b-2 border-orange-600">ALL</span>
+          <span className="text-orange-600 border-b-2 border-orange-600">
+            ALL
+          </span>
           <span className="text-gray-500">urgent</span>
           <span className="text-gray-500">reviewing</span>
           <span className="text-gray-500">flagged</span>
@@ -50,7 +69,7 @@ export default function AdminApprovals() {
       {/* LIST */}
       <div className="space-y-6">
         {kitchens.map((k, i) => (
-          <KitchenCard key={i} kitchen={k} />
+          <KitchenCard key={i} kitchen={k} updateStatus={updateStatus} />
         ))}
       </div>
 
@@ -71,9 +90,9 @@ export default function AdminApprovals() {
       <div className="bg-orange-50 border border-orange-100 p-6 rounded-2xl">
         <h3 className="font-bold mb-2">Administrator Trust Guidelines</h3>
         <p className="text-gray-600 text-sm">
-          Every kitchen approved is a promise of safety and quality.
-          Verify FSSAI documents carefully and match photos with owner ID.
-          Use “Request Info” when unsure.
+          Every kitchen approved is a promise of safety and quality. Verify
+          FSSAI documents carefully and match photos with owner ID. Use “Request
+          Info” when unsure.
         </p>
       </div>
     </div>
@@ -91,10 +110,9 @@ function Stat({ title, value }) {
   );
 }
 
-function KitchenCard({ kitchen }) {
+function KitchenCard({ kitchen, updateStatus }) {
   return (
     <div className="bg-white rounded-2xl shadow p-6 grid grid-cols-4 gap-6">
-
       {/* INFO */}
       <div>
         <p className="font-bold text-lg">{kitchen.name}</p>
@@ -126,19 +144,20 @@ function KitchenCard({ kitchen }) {
 
       {/* ACTIONS */}
       <div className="flex flex-col gap-3">
-        <button className="bg-green-500 text-white py-2 rounded-xl">
+        <button
+          onClick={() => updateStatus(kitchen.id, "approved")}
+          className="bg-green-500 text-white py-2 rounded-xl"
+        >
           Approve
         </button>
 
-        <button className="border py-2 rounded-xl">
-          Request Info
-        </button>
-
-        <button className="text-red-500 border border-red-200 py-2 rounded-xl">
+        <button
+          onClick={() => updateStatus(kitchen.id, "rejected")}
+          className="text-red-500 border border-red-200 py-2 rounded-xl"
+        >
           Reject
         </button>
       </div>
-
     </div>
   );
 }

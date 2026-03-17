@@ -8,7 +8,7 @@ const roles = [
   { id: "admin", label: "Admin", desc: "Platform admin" },
 ];
 
-export default function AuthFlow({ mode="login", setLoggedIn }) {
+export default function AuthFlow({ mode = "login", setLoggedIn }) {
   const navigate = useNavigate();
 
   const [role, setRole] = useState("customer");
@@ -57,40 +57,39 @@ export default function AuthFlow({ mode="login", setLoggedIn }) {
       loggedIn: true,
       time: new Date().toISOString(),
     };
-  
+
     localStorage.setItem("maybhojan_user", JSON.stringify(userData));
-  
+
     if (setLoggedIn) setLoggedIn(true);
-  
+
     // ✅ Role-based routing
     if (role === "customer") {
       navigate("/custalogin");
     }
-  
     if (role === "cook") {
-      navigate("/cook"); // cook onboarding dashboard
+      // ✅ CLEAR OLD ONBOARDING DATA
+      localStorage.removeItem("cook_onboarding_steps");
+      localStorage.removeItem("audit_requests");
+      localStorage.removeItem("my_audit_id");
+
+      navigate("/cook");
     }
-  
+
     if (role === "delivery") {
       navigate("/delivery");
     }
-  
+
     if (role === "admin") {
       navigate("/admin");
     }
   };
-  
 
   return (
     <div className="min-h-screen flex">
-
       {/* LEFT FORM */}
       <div className="w-full md:w-1/2 bg-white flex items-center justify-center p-10">
         <div className="w-full max-w-md">
-
-          <h1 className="text-2xl font-bold text-orange-500">
-            MayBhojan
-          </h1>
+          <h1 className="text-2xl font-bold text-orange-500">MayBhojan</h1>
 
           <h2 className="mt-6 text-4xl font-extrabold">
             {mode === "login" ? "Welcome back" : "Create your account"}
@@ -103,9 +102,11 @@ export default function AuthFlow({ mode="login", setLoggedIn }) {
                 key={r.id}
                 onClick={() => setRole(r.id)}
                 className={`p-4 rounded-xl border text-left
-                  ${role === r.id
-                    ? "bg-orange-100 border-orange-400"
-                    : "bg-gray-50 hover:bg-gray-100"}
+                  ${
+                    role === r.id
+                      ? "bg-orange-100 border-orange-400"
+                      : "bg-gray-50 hover:bg-gray-100"
+                  }
                 `}
               >
                 <p className="font-semibold">{r.label}</p>
@@ -222,17 +223,17 @@ export default function AuthFlow({ mode="login", setLoggedIn }) {
       </div>
 
       {/* RIGHT PANEL */}
-      <div className="hidden md:flex w-1/2
+      <div
+        className="hidden md:flex w-1/2
         bg-gradient-to-br from-[#F6E6DC] via-[#F1DCD1] to-[#E9CFC2]
-        items-center justify-center p-16">
-
+        items-center justify-center p-16"
+      >
         <div className="text-center max-w-md">
           <h2 className="text-5xl font-extrabold">
             Food that feels like home ❤️
           </h2>
         </div>
       </div>
-
     </div>
   );
 }

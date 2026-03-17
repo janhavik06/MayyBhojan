@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function StartAuditCTA({
   kitchenName = "Your Kitchen",
@@ -19,29 +19,75 @@ export default function StartAuditCTA({
 
     setSubmitting(true);
 
-    // simulate backend call
     setTimeout(() => {
       const ref = "MBV-" + Math.floor(100 + Math.random() * 900);
+
+      // ✅ CREATE REQUEST
+      const existing = JSON.parse(localStorage.getItem("audit_requests")) || [];
+
+      const newRequest = {
+        id: ref,
+        name: kitchenName,
+        owner: "You", // you can replace later with real user
+        city: "Your City",
+        urgent: false,
+        status: "pending",
+      };
+
+      localStorage.setItem(
+        "audit_requests",
+        JSON.stringify([...existing, newRequest]),
+      );
+
+      // ✅ SAVE CURRENT USER REQUEST ID
+      localStorage.setItem("my_audit_id", ref);
+
       setRefId(ref);
       setSubmitted(true);
       setSubmitting(false);
       setOpenConfirm(false);
-
-      if (onSubmit) onSubmit(ref);
     }, 1200);
   };
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const myId = localStorage.getItem("my_audit_id");
+      if (!myId) return;
+
+      const requests = JSON.parse(localStorage.getItem("audit_requests")) || [];
+
+      const req = requests.find((r) => r.id === myId);
+
+      if (!req) return;
+
+      if (req.status === "approved") {
+        const saved =
+          JSON.parse(localStorage.getItem("cook_onboarding_steps")) || {};
+
+        localStorage.setItem(
+          "cook_onboarding_steps",
+          JSON.stringify({ ...saved, audit: true }),
+        );
+
+        window.location.href = "/cookdashboard"; // ✅ redirect
+      }
+
+      if (req.status === "rejected") {
+        alert("❌ Audit rejected. Please reapply.");
+        localStorage.removeItem("my_audit_id");
+        setSubmitted(false);
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
   // ---------- SUBMITTED STATE ----------
   if (submitted) {
     return (
       <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-5 text-sm">
         <div className="flex justify-between items-center">
-          <span className="font-semibold text-yellow-800">
-            Under review
-          </span>
-          <span className="text-xs text-gray-600">
-            Ref: {refId}
-          </span>
+          <span className="font-semibold text-yellow-800">Under review</span>
+          <span className="text-xs text-gray-600">Ref: {refId}</span>
         </div>
 
         <p className="mt-2 text-gray-700">
@@ -86,9 +132,9 @@ export default function StartAuditCTA({
           onClose={() => setOpenConfirm(false)}
         >
           <p className="text-gray-600">
-            This will submit your documents to our review team.
-            They may ask for clearer photos or a short call.
-            You’ll receive an update within 48 hours.
+            This will submit your documents to our review team. They may ask for
+            clearer photos or a short call. You’ll receive an update within 48
+            hours.
           </p>
 
           <div className="flex gap-3 mt-6">
@@ -114,7 +160,8 @@ export default function StartAuditCTA({
       {showMissing && (
         <Modal title="Documents missing" onClose={() => setShowMissing(false)}>
           <p className="text-gray-600">
-            Please upload ID proof and kitchen photos before starting verification.
+            Please upload ID proof and kitchen photos before starting
+            verification.
           </p>
 
           <button className="w-full mt-5 bg-[#F5A87A] text-white py-3 rounded-xl font-semibold">
