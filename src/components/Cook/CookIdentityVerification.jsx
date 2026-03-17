@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 export default function CookIdentityVerification() {
   const navigate = useNavigate();
@@ -8,164 +7,183 @@ export default function CookIdentityVerification() {
   const [form, setForm] = useState({
     name: "",
     phone: "",
-    dob: "",
-    address: "",
+    email: "",
+    aadhaar: "",
+    otp: "",
+    consent: false,
   });
 
+  const [file, setFile] = useState(null);
+  const [otpSent, setOtpSent] = useState(false);
   const [error, setError] = useState("");
 
-  function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  function update(field, value) {
+    setForm((prev) => ({ ...prev, [field]: value }));
   }
 
- async function handleSubmit() {
-
-  if (!form.name || !form.phone || !form.address) {
-    setError("Please fill all required fields");
-    return;
-  }
-
-
-   try {
-
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  const response = await axios.post(
-    "http://localhost:8080/api/homemaker/identity",
-    {
-      userId: user.id,
-      fullName: form.name,
-      phone: form.phone,
-      dob: form.dob,
-      address: form.address
+  function sendOtp() {
+    if (!form.phone) {
+      setError("Enter phone number");
+      return;
     }
-  );
+    setError("");
+    setOtpSent(true);
+  }
 
-  console.log(response.data);
+  function validate() {
+    if (!form.name) return "Enter full name";
+    if (!form.phone) return "Enter phone number";
+    if (!form.email) return "Enter email";
+    if (!form.aadhaar) return "Enter Aadhaar number";
+    if (!file) return "Upload ID proof";
+    if (!form.consent) return "Accept consent";
+    if (!otpSent || form.otp !== "1234") return "Verify OTP first";
+    return "";
+  }
 
-  navigate("/cook/verification");
+  function handleSubmit() {
+    const err = validate();
+    if (err) {
+      setError(err);
+      return;
+    }
 
-} catch (error) {
+    const saved =
+      JSON.parse(localStorage.getItem("cook_onboarding_steps")) || {};
 
-  console.error(error);
-  setError("Failed to save identity");
+    localStorage.setItem(
+      "cook_onboarding_steps",
+      JSON.stringify({ ...saved, identity: true }),
+    );
 
-}
- }
+    navigate("/cook");
+  }
+
   return (
     <div className="min-h-screen bg-[#F6F2EF]">
-      <main className="max-w-6xl mx-auto px-8 py-10 grid lg:grid-cols-[2fr_1fr] gap-10">
-
+      <main className="max-w-6xl mx-auto px-8 py-10 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-10">
         {/* LEFT FORM */}
         <div>
-          <p className="text-xs text-orange-500 font-semibold tracking-wider">
-            STEP 1 OF 4: IDENTITY
-          </p>
-
-          <h1 className="text-3xl font-bold mt-2">
-            Identity Verification
-          </h1>
+          <h1 className="text-3xl font-bold">Identity Verification</h1>
 
           <p className="text-gray-600 mt-2">
-            Tell us a little about yourself to start onboarding your kitchen.
+            Verify your identity to start selling on MayBhojan.
           </p>
 
-          {/* progress */}
-          <div className="mt-6 h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full w-1/3 bg-orange-500"></div>
-          </div>
-
-          {/* FORM */}
-          <div className="bg-white rounded-2xl shadow-sm p-8 mt-8 space-y-6">
-
+          <div className="bg-white shadow-sm border rounded-2xl p-8 mt-8 space-y-6">
             <Input
               label="Full Name"
-              name="name"
               value={form.name}
-              onChange={handleChange}
+              onChange={(v) => update("name", v)}
             />
 
             <Input
               label="Phone Number"
-              name="phone"
               value={form.phone}
-              onChange={handleChange}
+              onChange={(v) => update("phone", v)}
+              numeric
             />
 
-            <Input
-              label="Date of Birth"
-              name="dob"
-              type="date"
-              value={form.dob}
-              onChange={handleChange}
-            />
-
-            <Input
-              label="Address"
-              name="address"
-              value={form.address}
-              onChange={handleChange}
-            />
-
-            {error && (
-              <p className="text-red-500 text-sm">{error}</p>
+            {!otpSent ? (
+              <button
+                onClick={sendOtp}
+                className="bg-orange-500 text-white px-5 py-2 rounded-xl"
+              >
+                Send OTP
+              </button>
+            ) : (
+              <Input
+                label="Enter OTP"
+                value={form.otp}
+                onChange={(v) => update("otp", v)}
+              />
             )}
 
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="bg-orange-500 text-white px-6 py-3 rounded-xl"
-            >
-              Save & Continue →
-            </button>
+            <Input
+              label="Email Address"
+              value={form.email}
+              onChange={(v) => update("email", v)}
+            />
 
+            <Input
+              label="Aadhaar Number"
+              value={form.aadhaar}
+              onChange={(v) => update("aadhaar", v)}
+              numeric
+            />
+
+            {/* Upload */}
+            <div>
+              <p className="font-semibold">Upload ID Proof</p>
+
+              <label className="block mt-3 cursor-pointer">
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => setFile(e.target.files[0])}
+                />
+
+                <div className="border-2 border-dashed rounded-xl p-6 text-center bg-orange-50">
+                  {file ? (
+                    <p className="text-green-600">{file.name}</p>
+                  ) : (
+                    <p className="text-gray-600">Click to upload ID</p>
+                  )}
+                </div>
+              </label>
+            </div>
+
+            {/* Consent */}
+            <label className="flex gap-3 text-sm">
+              <input
+                type="checkbox"
+                checked={form.consent}
+                onChange={(e) => update("consent", e.target.checked)}
+              />
+              I confirm my details are correct.
+            </label>
+
+            {error && <p className="text-red-500">{error}</p>}
+
+            <button
+              onClick={handleSubmit}
+              className="w-full bg-orange-500 text-white py-4 rounded-xl font-semibold"
+            >
+              Verify & Continue
+            </button>
           </div>
         </div>
 
-        {/* RIGHT INFO PANEL */}
-        <aside className="bg-white shadow-sm rounded-2xl p-6 h-fit">
-          <h3 className="font-semibold">Why do we ask this?</h3>
+        {/* RIGHT PANEL */}
+        <aside className="bg-white border shadow-sm rounded-2xl p-6 h-fit">
+          <h3 className="font-semibold">Why verification?</h3>
 
           <p className="text-sm text-gray-600 mt-3">
-            This helps us know who is cooking on MayBhojan so customers can
-            trust your kitchen.
+            This helps us build trust and ensure safety for customers.
           </p>
 
-          <div className="mt-6 text-sm">
-            <p className="font-semibold">Safe & Secure</p>
-
-            <p className="text-gray-600 mt-1">
-              Your information is used only for onboarding.
-            </p>
-          </div>
-
-          <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mt-6 text-sm">
-            “Verified kitchens receive more customer trust.”
-          </div>
+          <p className="text-sm mt-6">
+            Your data is securely stored and protected.
+          </p>
 
           <button className="mt-6 text-orange-500 font-semibold">
-            Chat with Support
+            Need help?
           </button>
         </aside>
-
       </main>
     </div>
   );
 }
 
-/* Input component */
-
-function Input({ label, name, value, onChange, type = "text" }) {
+function Input({ label, value, onChange, numeric }) {
   return (
     <div>
-      <label className="text-sm font-medium">{label}</label>
-
+      <p className="text-sm text-gray-600">{label}</p>
       <input
-        type={type}
-        name={name}
+        type={numeric ? "number" : "text"}
         value={value}
-        onChange={onChange}
-        className="w-full mt-2 px-4 py-3 border rounded-xl"
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full mt-1 px-4 py-3 border rounded-xl"
       />
     </div>
   );

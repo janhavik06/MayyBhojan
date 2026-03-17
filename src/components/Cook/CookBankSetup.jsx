@@ -43,27 +43,21 @@ export default function CookBankSetup() {
 
     const user = JSON.parse(localStorage.getItem("user"));
 
-    const params = new URLSearchParams();
-    params.append("userId", user.id);
-    params.append("accountHolderName", form.name);
-    params.append("accountNumber", form.account);
-    params.append("ifscCode", form.ifsc);
+    localStorage.setItem(
+      "cook_onboarding_steps",
+      JSON.stringify({ ...saved, banking: true }),
+    );
 
     await axios.post(
   "http://localhost:8080/api/homemaker/bank",
   params
 );
 
-/* update onboarding step in localStorage */
-
-const userData = JSON.parse(localStorage.getItem("user"));
-
-if (userData) {
-
-  const stepsKey = `cook_onboarding_steps_${userData.email}`;
-
-  const savedSteps =
-    JSON.parse(localStorage.getItem(stepsKey)) || {};
+      setTimeout(() => {
+        navigate("/cook"); // change route if needed
+      }, 1500);
+    }, 2000);
+  }
 
   savedSteps.banking = true;
 
@@ -101,29 +95,76 @@ setTimeout(() => {
               label="Account Holder Name"
               value={form.name}
               onChange={(v) => update("name", v)}
+              placeholder="As on your bank account"
             />
 
             <Input
               label="Account Number"
               value={form.account}
               onChange={(v) => update("account", v)}
+              placeholder="Enter account number"
               numeric
             />
 
             <Input
-              label="IFSC Code"
-              value={form.ifsc}
-              onChange={(v) => update("ifsc", v)}
+              label="Confirm account number"
+              value={form.confirm}
+              onChange={(v) => update("confirm", v)}
+              placeholder="Re-enter account number"
+              numeric
             />
 
-            {/* CONSENT */}
+            <Input
+              label="IFSC / Routing code"
+              value={form.ifsc}
+              onChange={(v) => update("ifsc", v)}
+              placeholder="Find on cheque or bank site"
+            />
+
+            <Input
+              label="Bank name"
+              value={form.bank}
+              onChange={(v) => update("bank", v)}
+            />
+
+            <Input
+              label="Branch (optional)"
+              value={form.branch}
+              onChange={(v) => update("branch", v)}
+            />
+
+            {/* upload */}
+            <div>
+              <p className="font-semibold">
+                Upload cancelled cheque / passbook
+              </p>
+
+              <label className="block mt-3 cursor-pointer">
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => setFile(e.target.files[0])}
+                />
+
+                <div className="border-2 border-dashed rounded-xl p-6 text-center bg-orange-50">
+                  {file ? (
+                    <p className="text-green-600">{file.name}</p>
+                  ) : (
+                    <p className="text-gray-600">Click to upload proof</p>
+                  )}
+                </div>
+              </label>
+            </div>
+
+            {/* consent */}
             <label className="flex gap-3 items-start text-sm">
               <input
                 type="checkbox"
                 checked={form.consent}
                 onChange={(e) => update("consent", e.target.checked)}
               />
-              I confirm these bank details are correct.
+              I confirm these details are correct and allow MayBhojan to deposit
+              payments.
             </label>
 
             {error && <p className="text-red-500">{error}</p>}
@@ -159,7 +200,7 @@ setTimeout(() => {
             this bank account.
           </p>
 
-          <p className="text-sm mt-6">Payments are usually processed weekly.</p>
+          <p className="text-sm mt-6">Approval usually takes 24–48 hours.</p>
 
           <button className="mt-6 text-orange-500 font-semibold">
             Need help?
@@ -179,6 +220,7 @@ function Input({ label, value, onChange, numeric }) {
         type={numeric ? "number" : "text"}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
         className="w-full mt-1 px-4 py-3 border rounded-xl"
       />
     </div>

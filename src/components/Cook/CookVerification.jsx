@@ -18,7 +18,9 @@ export default function CookVerification() {
   }
 
   // ✅ mark onboarding step complete
-  
+  function markDocumentsComplete() {
+    const saved =
+      JSON.parse(localStorage.getItem("cook_onboarding_steps")) || {};
 
   //  submit handler
   async function handleSubmit() {
@@ -62,8 +64,14 @@ if(result.includes("already")){
     setError("Documents already submitted");
 }else{
     setSuccess(true);
-}
+    const saved =
+      JSON.parse(localStorage.getItem("cook_onboarding_steps")) || {};
 
+    localStorage.setItem(
+      "cook_onboarding_steps",
+      JSON.stringify({ ...saved, documents: true }),
+    );
+    // redirect after short delay
     setTimeout(() => {
       navigate("/cook/login");
     }, 1500);
@@ -181,9 +189,9 @@ if(result.includes("already")){
 function UploadBox({ title, required, file, onUpload }) {
   return (
     <div className="border-2 border-dashed border-orange-200 rounded-2xl p-8 text-center bg-white">
-      <p className="font-medium">
-        {title}
-        {required && <span className="text-red-500 ml-1">*</span>}
+      <p className="font-semibold">
+        {title}{" "}
+        {required && <span className="text-xs text-red-500">Required</span>}
       </p>
 
       <label className="block mt-4 cursor-pointer">

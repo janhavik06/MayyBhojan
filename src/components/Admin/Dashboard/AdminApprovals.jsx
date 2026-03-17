@@ -1,83 +1,32 @@
 import { useState, useEffect } from "react";
 
 export default function AdminApprovals() {
+  const [kitchens, setKitchens] = useState([]);
 
-  const [tab, setTab] = useState("pending");
-  const [pending, setPending] = useState([]);
-  const [all, setAll] = useState([]);
-  const [detailsModal, setDetailsModal] = useState(null);
-  const [actionFeedback, setActionFeedback] = useState(null);
-  const [selected, setSelected] = useState([]);
+  useEffect(() => {
+    const data = JSON.parse(localStorage.getItem("audit_requests")) || [];
 
-  useEffect(() => { loadPending(); }, []);
-  useEffect(() => { if (tab === "all") loadAll(); }, [tab]);
+    // ✅ only pending
+    const pending = data.filter((k) => k.status === "pending");
 
-  async function loadPending() {
-    try {
-      const res = await fetch("http://localhost:8080/api/admin/homemakers/pending");
-      setPending(await res.json());
-    } catch (e) { console.error(e); }
+    setKitchens(pending);
+  }, []);
+
+  function updateStatus(id, status) {
+    const data = JSON.parse(localStorage.getItem("audit_requests")) || [];
+
+    const updated = data.map((k) => (k.id === id ? { ...k, status } : k));
+
+    // update storage
+    localStorage.setItem("audit_requests", JSON.stringify(updated));
+
+    // ✅ keep only pending in UI
+    const pending = updated.filter((k) => k.status === "pending");
+    setKitchens(pending);
   }
-
-  async function loadAll() {
-    try {
-      const res = await fetch("http://localhost:8080/api/admin/homemakers/all");
-      setAll(await res.json());
-    } catch (e) { console.error(e); }
-  }
-
-  async function openDetails(kitchen) {
-    try {
-      const res = await fetch(`http://localhost:8080/api/admin/homemaker/${kitchen.id}/details`);
-      const data = await res.json();
-      setDetailsModal({ ...data, accountStatus: kitchen.accountStatus });
-    } catch (e) { console.error(e); }
-  }
-
-  async function approveKitchen(id) {
-    try {
-      await fetch(`http://localhost:8080/api/admin/homemaker/${id}/approve`, { method: "PUT" });
-      setDetailsModal(null);
-      setPending(prev => prev.filter(k => k.id !== id));
-      toast("approve", "Homemaker approved successfully");
-    } catch (e) { console.error(e); }
-  }
-
-  async function rejectKitchen(id) {
-    try {
-      await fetch(`http://localhost:8080/api/admin/homemaker/${id}/reject`, { method: "PUT" });
-      setDetailsModal(null);
-      setPending(prev => prev.filter(k => k.id !== id));
-      if (tab === "all") loadAll();
-      toast("reject", "Homemaker rejected");
-    } catch (e) { console.error(e); }
-  }
-
-  async function bulkApprove() {
-    const selectedKitchens = selected.map(i => pending[i]);
-    for (let k of selectedKitchens) {
-      await fetch(`http://localhost:8080/api/admin/homemaker/${k.id}/approve`, { method: "PUT" });
-    }
-    const ids = selectedKitchens.map(k => k.id);
-    setPending(prev => prev.filter(k => !ids.includes(k.id)));
-    setSelected([]);
-    toast("approve", "Selected kitchens approved");
-  }
-
-  function toast(type, message) {
-    setActionFeedback({ type, message });
-    setTimeout(() => setActionFeedback(null), 3000);
-  }
-
-  function toggleSelect(index) {
-    setSelected(prev => prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]);
-  }
-
-  const isPendingTab = tab === "pending";
 
   return (
-    <div className="space-y-6">
-
+    <div className="space-y-8">
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
@@ -104,44 +53,30 @@ export default function AdminApprovals() {
         </TabBtn>
       </div>
 
-      {/* PENDING LIST */}
-      {isPendingTab && (
-        <div className="space-y-4">
-          {pending.length === 0 && (
-            <p className="text-gray-400 text-center py-10">No pending approvals</p>
-          )}
-          {pending.map((k, i) => (
-            <KitchenCard
-              key={k.id}
-              kitchen={k}
-              index={i}
-              selected={selected.includes(i)}
-              toggleSelect={toggleSelect}
-              onViewDetails={() => openDetails(k)}
-              onApprove={() => approveKitchen(k.id)}
-              onReject={() => rejectKitchen(k.id)}
-              showActions
-            />
-          ))}
+      {/* FILTERS */}
+      <div className="flex justify-between items-center">
+        <div className="flex gap-4 font-semibold">
+          <span className="text-orange-600 border-b-2 border-orange-600">
+            ALL
+          </span>
+          <span className="text-gray-500">urgent</span>
+          <span className="text-gray-500">reviewing</span>
+          <span className="text-gray-500">flagged</span>
         </div>
       )}
 
-      {/* ALL HOMEMAKERS LIST */}
-      {!isPendingTab && (
-        <div className="space-y-4">
-          {all.length === 0 && (
-            <p className="text-gray-400 text-center py-10">No processed homemakers yet</p>
-          )}
-          {all.map((k) => (
-            <KitchenCard
-              key={k.id}
-              kitchen={k}
-              onViewDetails={() => openDetails(k)}
-              showActions={false}
-            />
-          ))}
-        </div>
-      )}
+        <input
+          placeholder="Search by kitchen or owner..."
+          className="border px-4 py-2 rounded-xl w-72"
+        />
+      </div>
+
+      {/* LIST */}
+      <div className="space-y-6">
+        {kitchens.map((k, i) => (
+          <KitchenCard key={i} kitchen={k} updateStatus={updateStatus} />
+        ))}
+      </div>
 
       {/* DETAILS MODAL */}
       {detailsModal && (
@@ -167,6 +102,15 @@ export default function AdminApprovals() {
         </div>
       )}
 
+      {/* GUIDELINES */}
+      <div className="bg-orange-50 border border-orange-100 p-6 rounded-2xl">
+        <h3 className="font-bold mb-2">Administrator Trust Guidelines</h3>
+        <p className="text-gray-600 text-sm">
+          Every kitchen approved is a promise of safety and quality. Verify
+          FSSAI documents carefully and match photos with owner ID. Use “Request
+          Info” when unsure.
+        </p>
+      </div>
     </div>
   );
 }
@@ -185,29 +129,18 @@ function TabBtn({ active, onClick, children }) {
   );
 }
 
-// ─── Kitchen Card ─────────────────────────────────────────────────────────────
-
-function KitchenCard({ kitchen, onViewDetails, onApprove, onReject, toggleSelect, selected, index, showActions }) {
-
-  const statusStyle = {
-    ACTIVE:   "bg-green-100 text-green-700",
-    REJECTED: "bg-red-100 text-red-700",
-    UNDER_REVIEW: "bg-yellow-100 text-yellow-700",
-  };
-
-  const statusLabel = {
-    ACTIVE:   "Approved",
-    REJECTED: "Rejected",
-    UNDER_REVIEW: "Pending",
-  };
-
-  const status = kitchen.accountStatus || "UNDER_REVIEW";
-
+function KitchenCard({ kitchen, updateStatus }) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-5 flex items-center justify-between border">
-      <div className="flex items-center gap-4">
-        {showActions && (
-          <input type="checkbox" checked={selected} onChange={() => toggleSelect(index)} />
+    <div className="bg-white rounded-2xl shadow p-6 grid grid-cols-4 gap-6">
+      {/* INFO */}
+      <div>
+        <p className="font-bold text-lg">{kitchen.name}</p>
+        <p className="text-orange-600">{kitchen.owner}</p>
+        <p className="text-sm text-gray-500">{kitchen.city}</p>
+        {kitchen.urgent && (
+          <span className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs">
+            Urgent
+          </span>
         )}
         <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-lg">
           {kitchen.name?.charAt(0)}
@@ -245,103 +178,22 @@ function KitchenCard({ kitchen, onViewDetails, onApprove, onReject, toggleSelect
 
 // ─── Details Modal ────────────────────────────────────────────────────────────
 
-function DetailsModal({ data, onClose, onApprove, onReject }) {
+      {/* ACTIONS */}
+      <div className="flex flex-col gap-3">
+        <button
+          onClick={() => updateStatus(kitchen.id, "approved")}
+          className="bg-green-500 text-white py-2 rounded-xl"
+        >
+          Approve
+        </button>
 
-  const [tab, setTab] = useState("overview");
-  const tabs = ["overview", "identity", "documents", "banking"];
-
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden">
-
-        <div className="bg-gradient-to-r from-orange-500 to-orange-400 text-white p-6 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
-              {data.name?.charAt(0)}
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">{data.name}</h2>
-              <p className="text-sm opacity-90">{data.email}</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="text-white text-2xl font-bold hover:opacity-70">✕</button>
-        </div>
-
-        <div className="flex border-b">
-          {tabs.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-6 py-3 font-semibold capitalize text-sm border-b-2 transition
-                ${tab === t ? "border-orange-500 text-orange-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
-        <div className="p-6 min-h-[220px]">
-          {tab === "overview" && (
-            <div className="grid grid-cols-2 gap-4">
-              <InfoCard label="Full Name" value={data.name} />
-              <InfoCard label="Email" value={data.email} />
-              <InfoCard label="Phone" value={data.phone} />
-              <InfoCard label="Date of Birth" value={data.dob} />
-              <InfoCard label="Address" value={data.address} className="col-span-2" />
-            </div>
-          )}
-          {tab === "identity" && (
-            <div className="space-y-3">
-              <Row label="Full Name" value={data.name} />
-              <Row label="Phone" value={data.phone} />
-              <Row label="Date of Birth" value={data.dob} />
-              <Row label="Address" value={data.address} />
-            </div>
-          )}
-          {tab === "documents" && (
-            <div className="grid grid-cols-3 gap-4">
-              <DocCard title="Government ID" url={data.govtIdUrl} />
-              <DocCard title="FSSAI Certificate" url={data.fssaiUrl} />
-              <DocCard title="Kitchen Photo" url={data.kitchenPhotoUrl} />
-            </div>
-          )}
-          {tab === "banking" && (
-            <div className="space-y-3">
-              <Row label="Account Holder" value={data.accountHolderName} />
-              <Row label="Account Number" value={data.accountNumber} />
-              <Row label="IFSC Code" value={data.ifscCode} />
-            </div>
-          )}
-        </div>
-
-        <div className="flex gap-3 p-6 border-t bg-gray-50">
-          {onApprove && (
-            <button onClick={onApprove} className="flex-1 bg-green-500 text-white py-3 rounded-xl font-semibold hover:bg-green-600">
-              ✔ Approve Kitchen
-            </button>
-          )}
-          {onReject && (
-            <button onClick={onReject} className="flex-1 border border-red-300 text-red-600 py-3 rounded-xl font-semibold hover:bg-red-50">
-              ✖ Reject
-            </button>
-          )}
-          {!onApprove && !onReject && (
-            <p className="text-sm text-gray-400 w-full text-center py-2">View only — homemaker already processed.</p>
-          )}
-        </div>
-
+        <button
+          onClick={() => updateStatus(kitchen.id, "rejected")}
+          className="text-red-500 border border-red-200 py-2 rounded-xl"
+        >
+          Reject
+        </button>
       </div>
-    </div>
-  );
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function InfoCard({ label, value, className = "" }) {
-  return (
-    <div className={`bg-gray-50 border rounded-xl p-4 ${className}`}>
-      <p className="text-xs text-gray-400 mb-1">{label}</p>
-      <p className="font-semibold text-gray-800">{value || "—"}</p>
     </div>
   );
 }

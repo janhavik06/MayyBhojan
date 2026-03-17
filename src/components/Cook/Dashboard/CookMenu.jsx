@@ -3,29 +3,41 @@ import { getMenu, addDish } from "../../../services/menuService";
 
 export default function CookMenu() {
   const [filter, setFilter] = useState("all");
-  const [dishes, setDishes] = useState([]);
-  const [showAddDish, setShowAddDish] = useState(false);
 
-  useEffect(() => {
-    async function loadMenu() {
-      const user = JSON.parse(localStorage.getItem("user"))
-      const userId = user?.id;
-      const data = await getMenu(userId);
-      setDishes(data);
-    }
-
-    loadMenu();
-  }, []);
+  const dishes = [
+    {
+      id: 1,
+      name: "Grandma's Special Dal Tadka",
+      veg: true,
+      price: 180,
+      time: "30-40 min",
+      orders: 142,
+      available: true,
+      tags: ["Comfort", "Healthy", "Protein"],
+      img: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d",
+    },
+    {
+      id: 2,
+      name: "Paneer Butter Masala",
+      veg: true,
+      price: 220,
+      time: "45 min",
+      orders: 389,
+      available: true,
+      tags: ["Spicy", "Rich", "Best Seller"],
+      img: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7",
+    },
+  ];
 
   const filtered =
     filter === "all"
       ? dishes
       : filter === "veg"
-        ? dishes.filter((d) => d.category === "VEG")
-        : dishes.filter((d) => d.category === "NONVEG");
+        ? dishes.filter((d) => d.veg)
+        : dishes.filter((d) => !d.veg);
 
   return (
-    <div className="bg-[#F6F2EF] min-h-screen p-10">
+    <div className=" bg-[#F6F2EF] min-h-screen p-10">
       {/* HEADER */}
       <div className="flex justify-between items-start mb-8">
         <div>
@@ -42,7 +54,7 @@ export default function CookMenu() {
         </div>
 
         <div className="flex gap-4">
-          <StatCard label="Total Items" value={dishes.length} />
+          <StatCard label="Total Items" value="3" />
           <StatCard label="Menu Health" value="94%" />
         </div>
       </div>
@@ -72,6 +84,7 @@ export default function CookMenu() {
 
         {/* CURRENT OFFERINGS */}
         <div>
+          {/* FILTER */}
           <div className="flex justify-between items-center mb-4">
             <h2 className="font-semibold text-lg">Current Offerings</h2>
 
@@ -101,16 +114,24 @@ export default function CookMenu() {
         </div>
       </div>
 
-      {showAddDish && (
-        <AddDishModal
-          close={() => setShowAddDish(false)}
-          refreshMenu={async () => {
-            const user = JSON.parse(localStorage.getItem("user"));
-            const data = await getMenu(user.id);
-            setDishes(data);
-          }}
-        />
-      )}
+      {/* TIPS SECTION */}
+      <div className="mt-10 bg-[#F3E2D6] rounded-2xl p-8">
+        <h3 className="font-semibold mb-6">Kitchen Growth Tips</h3>
+
+        <div className="grid md:grid-cols-3 gap-6 text-sm">
+          <Tip title="Weekly Specials">
+            Limited edition dishes get 3× more weekend orders.
+          </Tip>
+
+          <Tip title="Photography Matters">
+            Bright daylight photos build customer trust.
+          </Tip>
+
+          <Tip title="Dietary Tags">
+            Tags like Gluten-free help customers discover you.
+          </Tip>
+        </div>
+      </div>
     </div>
   );
 }
@@ -128,14 +149,12 @@ function DishCard({ dish }) {
   return (
     <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
       <div className="relative">
-        <img src={dish.image} className="h-48 w-full object-cover" />
+        <img src={dish.img} className="h-48 w-full object-cover" />
 
         <span
           className={`absolute top-3 right-3 text-xs px-3 py-1 rounded-full
-          ${dish.available
-              ? "bg-green-100 text-green-700"
-              : "bg-gray-200 text-gray-600"
-            }`}
+          ${dish.available ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"}
+        `}
         >
           {dish.available ? "AVAILABLE" : "HIDDEN"}
         </span>
@@ -144,30 +163,23 @@ function DishCard({ dish }) {
       <div className="p-6">
         <p
           className={`text-xs font-semibold
-          ${dish.category === "VEG" ? "text-green-600" : "text-red-600"}`}
+          ${dish.veg ? "text-green-600" : "text-red-600"}
+        `}
         >
-          {dish.category}
+          {dish.veg ? "VEG" : "NON-VEG"}
         </p>
 
         <h3 className="font-semibold mt-1">{dish.name}</h3>
 
         <p className="text-orange-500 font-bold mt-2">₹{dish.price}</p>
-      </div>
-    </div>
-  );
-}
 
-function AddDishModal({ close, refreshMenu }) {
-  const [dish, setDish] = useState({
-    name: "",
-    price: "",
-    type: "veg",
-    image: null,
-  });
-
-  function handleChange(e) {
-    setDish({ ...dish, [e.target.name]: e.target.value });
-  }
+        <div className="flex gap-2 flex-wrap mt-2 text-xs text-gray-600">
+          {dish.tags.map((t) => (
+            <span key={t} className="bg-gray-100 px-2 py-1 rounded">
+              {t}
+            </span>
+          ))}
+        </div>
 
   async function handleSubmit() {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -242,21 +254,9 @@ function AddDishModal({ close, refreshMenu }) {
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 mt-8">
-          <button
-            onClick={close}
-            className="px-5 py-2 border rounded-xl text-sm hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-
-          <button
-            onClick={handleSubmit}
-            className="bg-orange-500 text-white px-6 py-2 rounded-xl"
-          >
-            Add Dish
-          </button>
-        </div>
+        <button className="mt-4 border w-full py-3 rounded-xl text-sm hover:bg-gray-50">
+          Edit
+        </button>
       </div>
     </div>
   );

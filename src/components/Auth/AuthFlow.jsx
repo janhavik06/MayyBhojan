@@ -68,59 +68,45 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
     
   };
 
-  /* ================= LOGIN ================= */
+  const finishAuth = () => {
+    const userData = {
+      role,
+      phone,
+      email,
+      loginMethod: method,
+      loggedIn: true,
+      time: new Date().toISOString(),
+    };
 
-  const handleLogin = async () => {
+    localStorage.setItem("maybhojan_user", JSON.stringify(userData));
 
-    const isAdmin = email === "admin@maybhojan.com";
+    if (setLoggedIn) setLoggedIn(true);
 
-    if (!isAdmin && !role) {
-      setError("Please select a role");
-      return;
+    // ✅ Role-based routing
+    if (role === "customer") {
+      navigate("/custalogin");
+    }
+    if (role === "cook") {
+      // ✅ CLEAR OLD ONBOARDING DATA
+      localStorage.removeItem("cook_onboarding_steps");
+      localStorage.removeItem("audit_requests");
+      localStorage.removeItem("my_audit_id");
+
+      navigate("/cook");
     }
 
-    try {
-      const res = await axios.post(`${API}/login`, {
-        email,
-        password,
-      });
+    if (role === "delivery") {
+      navigate("/delivery");
+    }
 
-      const user = res.data;
-
-      // Admin bypass — no role selection needed
-      if (isAdmin) {
-        if (user.role !== "ADMIN") {
-          setError("Unauthorized");
-          return;
-        }
-        localStorage.setItem("user", JSON.stringify(user));
-        if (setLoggedIn) setLoggedIn(true);
-        navigate("/admin");
-        return;
-      }
-
-      if (user.role !== roleMap[role]) {
-        setError("Wrong role selected");
-        return;
-      }
-
-      localStorage.setItem("user", JSON.stringify(user));
-
-      if (setLoggedIn) setLoggedIn(true);
-
-      if (user.role === "CUSTOMER") navigate("/custalogin");
-      if (user.role === "HOMEMAKER") navigate("/cook/login");
-      if (user.role === "DELIVERY") navigate("/delivery");
-    } catch (err) {
-      console.error(err);
-      setError("Invalid email or password");
+    if (role === "admin") {
+      navigate("/admin");
     }
   };
 
   return (
     <div className="min-h-screen flex">
-      {/* LEFT SIDE */}
-
+      {/* LEFT FORM */}
       <div className="w-full md:w-1/2 bg-white flex items-center justify-center p-10">
         <div className="w-full max-w-md">
           <h1 className="text-2xl font-bold text-orange-500">MayBhojan</h1>
@@ -137,10 +123,12 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
                 key={r.id}
                 onClick={() => setRole(r.id)}
                 className={`p-4 rounded-xl border text-left
-                ${role === r.id
-                    ? "bg-orange-100 border-orange-400"
-                    : "bg-gray-50 hover:bg-gray-100"
-                  }`}
+                  ${
+                    role === r.id
+                      ? "bg-orange-100 border-orange-400"
+                      : "bg-gray-50 hover:bg-gray-100"
+                  }
+                `}
               >
                 <p className="font-semibold">{r.label}</p>
                 <p className="text-xs text-gray-500">{r.desc}</p>
@@ -217,8 +205,7 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
         </div>
       </div>
 
-      {/* RIGHT SIDE */}
-
+      {/* RIGHT PANEL */}
       <div
         className="hidden md:flex w-1/2
         bg-gradient-to-br from-[#F6E6DC] via-[#F1DCD1] to-[#E9CFC2]

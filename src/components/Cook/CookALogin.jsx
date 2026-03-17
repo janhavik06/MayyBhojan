@@ -3,14 +3,39 @@ import { useNavigate } from "react-router-dom";
 import StartAuditCTA from "./StartAuditCTA";
 
 export default function CookALogin() {
-  const navigate = useNavigate();
-
-  const [steps, setSteps] = useState({
-    identity: false,
-    documents: false,
-    banking: false,
-    audit: false,
+  const [steps, setSteps] = useState(() => {
+    const saved = localStorage.getItem("cook_onboarding_steps");
+    return saved
+      ? JSON.parse(saved)
+      : {
+          identity: false, // ✅ FIXED (was true before)
+          documents: false,
+          audit: false,
+          banking: false,
+        };
   });
+
+  useEffect(() => {
+    // ✅ detect new signup (you can customize condition)
+    const isNewUser = localStorage.getItem("new_signup");
+
+    if (isNewUser === "true") {
+      localStorage.removeItem("cook_onboarding_steps");
+      localStorage.removeItem("audit_requests");
+      localStorage.removeItem("my_audit_id");
+
+      // reset flag
+      localStorage.setItem("new_signup", "false");
+
+      // reset steps state
+      setSteps({
+        identity: false,
+        documents: false,
+        audit: false,
+        banking: false,
+      });
+    }
+  }, []);
 
   useEffect(() => {
 
@@ -46,7 +71,13 @@ export default function CookALogin() {
 
   }, []);
 
-  const completed = Object.values(steps).filter(Boolean).length;
+  // ✅ STEP ORDER (NEW)
+  const stepOrder = ["identity", "documents", "banking", "audit"];
+  // ✅ CURRENT STEP INDEX (NEW)
+  const currentStepIndex = stepOrder.findIndex((step) => !steps[step]);
+
+  // ✅ COMPLETED COUNT (FIXED)
+  const completed = currentStepIndex === -1 ? 4 : currentStepIndex;
 
   useEffect(() => {
     if (steps.audit) {
@@ -86,37 +117,39 @@ export default function CookALogin() {
             <span>{completed} of 4 Completed</span>
           </div>
 
-          {/* STEP 1 */}
+          {/* ✅ STEP 1 */}
           <ChecklistCard
             title="Identity Verification"
             desc="Confirm your account details securely."
             done={steps.identity}
-            active={!steps.identity}
-            button="Verify Identity"
-            onClick={() => navigate("/cook/identity")}
+            active={currentStepIndex === 0}
+            button="Start"
+            onClick={() => currentStepIndex === 0 && navigate("/cook/identity")}
           />
 
-          {/* STEP 2 */}
+          {/* ✅ STEP 2 */}
           <ChecklistCard
             title="Document Upload"
             desc="Upload Aadhaar / Voter ID"
             done={steps.documents}
-            active={steps.identity && !steps.documents}
+            active={currentStepIndex === 1}
             button="Upload Documents"
-            onClick={() => navigate("/cook/verification")}
+            onClick={() =>
+              currentStepIndex === 1 && navigate("/cook/verification")
+            }
           />
 
-          {/* STEP 3 */}
+          {/* ✅ STEP 3 → BANKING */}
           <ChecklistCard
             title="Banking & Payouts"
             desc="Add bank details for payments"
             done={steps.banking}
-            active={steps.documents && !steps.banking}
+            active={currentStepIndex === 2}
             button="Setup Bank"
-            onClick={() => navigate("/cook/bank")}
+            onClick={() => currentStepIndex === 2 && navigate("/cook/bank")}
           />
 
-          {/* STEP 4 */}
+          {/* ✅ STEP 4 → AUDIT */}
           <div className="mt-4">
             <div
               className={`bg-white rounded-xl p-6 shadow-sm border 
@@ -131,11 +164,12 @@ export default function CookALogin() {
 
               <StartAuditCTA
                 kitchenName="Your Kitchen"
-                docsReady={steps.banking}
+                docsReady={steps.documents && steps.banking} // ✅ BOTH REQUIRED
+                onSubmit={() => completeStep("audit")}
+                disabled={currentStepIndex !== 3} // ✅ NOW STEP 4
               />
             </div>
           </div>
-
         </section>
 
         <HelpSection />
@@ -201,7 +235,8 @@ function ChecklistCard({ title, desc, done, active, button, onClick }) {
         ) : (
           <button
             onClick={onClick}
-            className="bg-orange-500 text-white px-5 py-2 rounded-full text-sm"
+            disabled={!active} // ✅ PREVENT SKIP
+            className="bg-orange-500 text-white px-5 py-2 rounded-full text-sm disabled:opacity-50"
           >
             {button}
           </button>

@@ -1,9 +1,14 @@
 import { useState, useEffect } from "react";
 
-export default function StartAuditCTA({ docsReady = false }) {
-
-  const [status, setStatus] = useState(null);
-  const [loading, setLoading] = useState(false);
+export default function StartAuditCTA({
+  kitchenName = "Your Kitchen",
+  docsReady = false,
+  onSubmit,
+}) {
+  const [openConfirm, setOpenConfirm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [refId, setRefId] = useState(null);
   const [showMissing, setShowMissing] = useState(false);
 
   // Check current account status on load
@@ -28,61 +33,80 @@ export default function StartAuditCTA({ docsReady = false }) {
 
       const user = JSON.parse(localStorage.getItem("user"));
 
-      if (!user) {
-        console.error("User not logged in");
-        return;
-      }
+    setTimeout(() => {
+      const ref = "MBV-" + Math.floor(100 + Math.random() * 900);
 
-      const params = new URLSearchParams();
-      params.append("userId", user.id);
+      // ✅ CREATE REQUEST
+      const existing = JSON.parse(localStorage.getItem("audit_requests")) || [];
 
-      const res = await fetch(
-        "http://localhost:8080/api/homemaker/submit",
-        {
-          method: "POST",
-          body: params
-        }
+      const newRequest = {
+        id: ref,
+        name: kitchenName,
+        owner: "You", // you can replace later with real user
+        city: "Your City",
+        urgent: false,
+        status: "pending",
+      };
+
+      localStorage.setItem(
+        "audit_requests",
+        JSON.stringify([...existing, newRequest]),
       );
 
-      const msg = await res.text();
-      console.log(msg);
+      // ✅ SAVE CURRENT USER REQUEST ID
+      localStorage.setItem("my_audit_id", ref);
 
-      // Update localStorage so status persists on refresh
-      user.accountStatus = "UNDER_REVIEW";
-      localStorage.setItem("user", JSON.stringify(user));
-
-      setStatus("pending");
-
-    } catch (error) {
-      console.error("Submit failed", error);
-    } finally {
-      setLoading(false);
-    }
-
+      setRefId(ref);
+      setSubmitted(true);
+      setSubmitting(false);
+      setOpenConfirm(false);
+    }, 1200);
   };
 
-  /* ---------- STATUS UI ---------- */
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const myId = localStorage.getItem("my_audit_id");
+      if (!myId) return;
 
-  if (status === "pending") {
+      const requests = JSON.parse(localStorage.getItem("audit_requests")) || [];
+
+      const req = requests.find((r) => r.id === myId);
+
+      if (!req) return;
+
+      if (req.status === "approved") {
+        const saved =
+          JSON.parse(localStorage.getItem("cook_onboarding_steps")) || {};
+
+        localStorage.setItem(
+          "cook_onboarding_steps",
+          JSON.stringify({ ...saved, audit: true }),
+        );
+
+        window.location.href = "/cookdashboard"; // ✅ redirect
+      }
+
+      if (req.status === "rejected") {
+        alert("❌ Audit rejected. Please reapply.");
+        localStorage.removeItem("my_audit_id");
+        setSubmitted(false);
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
+  // ---------- SUBMITTED STATE ----------
+  if (submitted) {
     return (
       <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-5 text-sm">
-        ⏳ Pending Admin Approval
-      </div>
-    );
-  }
+        <div className="flex justify-between items-center">
+          <span className="font-semibold text-yellow-800">Under review</span>
+          <span className="text-xs text-gray-600">Ref: {refId}</span>
+        </div>
 
-  if (status === "approved") {
-    return (
-      <div className="bg-green-50 border border-green-300 rounded-xl p-5 text-sm">
-        ✅ Your kitchen is verified!
-      </div>
-    );
-  }
-
-  if (status === "rejected") {
-    return (
-      <div className="bg-red-50 border border-red-300 rounded-xl p-5 text-sm">
-        ❌ Your verification was rejected. Please update your details.
+        <p className="mt-2 text-gray-700">
+          Submitted just now • Expected review within 48 hours
+        </p>
       </div>
     );
   }
@@ -114,7 +138,36 @@ export default function StartAuditCTA({ docsReady = false }) {
         </p>
       )}
 
-      {/* ---------- MODAL ---------- */}
+      {/* CONFIRM MODAL */}
+      {openConfirm && (
+        <Modal
+          title={`Start verification for ${kitchenName}?`}
+          onClose={() => setOpenConfirm(false)}
+        >
+          <p className="text-gray-600">
+            This will submit your documents to our review team. They may ask for
+            clearer photos or a short call. You’ll receive an update within 48
+            hours.
+          </p>
+
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={startVerification}
+              disabled={submitting}
+              className="flex-1 bg-[#F5A87A] text-white py-3 rounded-xl font-semibold"
+            >
+              {submitting ? "Submitting…" : "Yes, start verification"}
+            </button>
+
+            <button
+              onClick={() => setOpenConfirm(false)}
+              className="flex-1 border py-3 rounded-xl"
+            >
+              Cancel
+            </button>
+          </div>
+        </Modal>
+      )}
 
       {showMissing && (
         <Modal
@@ -122,7 +175,8 @@ export default function StartAuditCTA({ docsReady = false }) {
           onClose={() => setShowMissing(false)}
         >
           <p className="text-gray-600">
-            Please complete all steps (especially banking) before applying.
+            Please upload ID proof and kitchen photos before starting
+            verification.
           </p>
 
           <button
