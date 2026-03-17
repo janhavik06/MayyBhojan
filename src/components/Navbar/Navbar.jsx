@@ -1,45 +1,40 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
 import { useCart } from "../Cart/CartContext";
 
-export default function Navbar({ language, setLanguage, loggedIn }) {
+export default function Navbar({ language, setLanguage }) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { count } = useCart();
 
-  const showCustomerNav = loggedIn && location.pathname !== "/";
+  const isHomePage = location.pathname === "/";
+
+  const user = JSON.parse(localStorage.getItem("maybhojan_user"));
+  const role = user?.role;
+
+  // ✅ FIX
+  const roleUpper = role?.toUpperCase();
+
+  const isCustomer = roleUpper === "CUSTOMER";
+  const isCook = roleUpper === "COOK";
+  const isDelivery = roleUpper === "DELIVERY";
+
+  // ✅ For navbar links (Home + Explore)
+  const isUserType = isCustomer || isCook || isDelivery;
+  function goToProfile() {
+    if (role === "COOK") navigate("/cook");
+    else if (role === "CUSTOMER") navigate("/profile");
+    else if (role === "DELIVERY") navigate("/delivery");
+    else if (role === "ADMIN") navigate("/admin");
+  }
 
   return (
-<header className="w-full bg-white shadow-md shadow-black/5 sticky top-0 z-100">
-<div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+    <header className="w-full bg-white shadow-md sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
         {/* LEFT */}
         <nav className="hidden md:flex gap-8 font-medium">
-          {!showCustomerNav ? (
-            <>
-              <NavLink
-                to="/about"
-                className={({ isActive }) =>
-                  isActive
-                    ? "text-orange-500"
-                    : "text-gray-700 hover:text-orange-500"
-                }
-              >
-                About Us
-              </NavLink>
-
-              <NavLink
-                to="/how"
-                className={({ isActive }) =>
-                  isActive
-                    ? "text-orange-500"
-                    : "text-gray-700 hover:text-orange-500"
-                }
-              >
-                How it Works
-              </NavLink>
-            </>
-          ) : (
+          {isUserType ? (
             <>
               <Link to="/" className="text-gray-700 hover:text-orange-500">
                 <i className="fa-solid fa-house"></i> Home
@@ -51,6 +46,22 @@ export default function Navbar({ language, setLanguage, loggedIn }) {
               >
                 <i className="fa-solid fa-magnifying-glass"></i> Explore
               </Link>
+            </>
+          ) : (
+            <>
+              <NavLink
+                to="/about"
+                className="text-gray-700 hover:text-orange-500"
+              >
+                About Us
+              </NavLink>
+
+              <NavLink
+                to="/how"
+                className="text-gray-700 hover:text-orange-500"
+              >
+                How it Works
+              </NavLink>
             </>
           )}
         </nav>
@@ -67,7 +78,8 @@ export default function Navbar({ language, setLanguage, loggedIn }) {
         </Link>
 
         {/* RIGHT */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-6">
+          {/* LANGUAGE */}
           <button
             onClick={() => setLanguage(language === "en" ? "hi" : "en")}
             className="border px-3 py-1 rounded-full text-sm"
@@ -75,105 +87,48 @@ export default function Navbar({ language, setLanguage, loggedIn }) {
             🌐 {language === "en" ? "EN/हिं" : "हिं/EN"}
           </button>
 
-          {!showCustomerNav ? (
+          {isCustomer && !isHomePage ? (
             <>
-              <Link to="/login" className="px-5 py-2 font-semibold">
-                Login
+              {/* CART */}
+              <Link to="/cart" className="relative text-xl">
+                <i className="fa-solid fa-cart-shopping"></i>
+                {count > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs px-2 rounded-full">
+                    {count}
+                  </span>
+                )}
               </Link>
 
-              <Link
-                to="/signup"
-                className="bg-orange-500 text-white px-5 py-2 rounded-full font-semibold"
-              >
-                Sign Up
-              </Link>
+              {/* PROFILE */}
+              <div onClick={goToProfile} className="cursor-pointer">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-400 to-orange-600 flex items-center justify-center text-white shadow-md">
+                  <i className="fa-solid fa-user"></i>
+                </div>
+              </div>
             </>
           ) : (
-            <>
-              <Link to="/cart" className="relative text-xl cursor-pointer">
-                <i className="fa-solid fa-basket-shopping"></i>
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  {count}
-                </span>
-              </Link>
+            isHomePage && (
+              <>
+                <Link to="/login" className="px-5 py-2 font-semibold">
+                  Login
+                </Link>
 
-              <Link to="/profile">
-                <img
-                  src="https://i.pravatar.cc/40"
-                  className="w-10 h-10 rounded-full border cursor-pointer"
-                />
-              </Link>
-            </>
+                <Link
+                  to="/signup"
+                  className="bg-orange-500 text-white px-5 py-2 rounded-full font-semibold"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )
           )}
         </div>
 
-        {/* MOBILE BUTTON */}
+        {/* MOBILE */}
         <button className="md:hidden text-2xl" onClick={() => setOpen(!open)}>
           {open ? "✖" : "☰"}
         </button>
       </div>
-
-      {/* MOBILE MENU */}
-      {open && (
-        <div className="md:hidden border-t bg-white px-6 py-4 space-y-4">
-          <button
-            onClick={() => setLanguage(language === "en" ? "hi" : "en")}
-            className="border px-3 py-1 rounded-full text-sm"
-          >
-            🌐 {language === "en" ? "EN/हिं" : "हिं/EN"}
-          </button>
-
-          {!showCustomerNav ? (
-            <>
-              <NavLink
-                to="/about"
-                onClick={() => setOpen(false)}
-                className="block"
-              >
-                About Us
-              </NavLink>
-
-              <NavLink
-                to="/how"
-                onClick={() => setOpen(false)}
-                className="block"
-              >
-                How it Works
-              </NavLink>
-
-              <Link
-                to="/login"
-                onClick={() => setOpen(false)}
-                className="block"
-              >
-                Login
-              </Link>
-
-              <Link
-                to="/signup"
-                onClick={() => setOpen(false)}
-                className="block bg-orange-500 text-white px-4 py-2 rounded-full text-center"
-              >
-                Sign Up
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link to="/" onClick={() => setOpen(false)} className="block">
-                <i className="fa-solid fa-house"></i> Home
-              </Link>
-
-              <Link
-                to="/explore"
-                onClick={() => setOpen(false)}
-                className="block"
-              >
-                <i className="fa-solid fa-magnifying-glass"></i> Explore
-              </Link>
-            </>
-          )}
-        </div>
-      )}
     </header>
   );
 }

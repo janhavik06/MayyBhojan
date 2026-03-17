@@ -30,8 +30,20 @@ export const profileData = {
   ],
 
   favorites: [
-    { name: "Amma's South Indian", rating: 4.9 },
-    { name: "Punjabi Tadka", rating: 4.7 },
-    { name: "Healthy Bowl", rating: 4.8 },
+    {
+      name: "Savita's Kitchen",
+      rating: "4.8",
+      image: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d",
+    },
+    {
+      name: "Grandma's Rasoi",
+      rating: "4.7",
+      image: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7",
+    },
+    {
+      name: "Healthy Bowl",
+      rating: "4.9",
+      image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd",
+    },
   ],
 };

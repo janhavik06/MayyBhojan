@@ -1,5 +1,8 @@
+
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function CookBankSetup() {
   const navigate = useNavigate();
@@ -7,162 +10,133 @@ export default function CookBankSetup() {
   const [form, setForm] = useState({
     name: "",
     account: "",
-    confirm: "",
     ifsc: "",
-    bank: "",
-    branch: "",
     consent: false,
   });
 
-  const [file, setFile] = useState(null);
-  const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
+  const [status, setStatus] = useState("idle");
 
   function update(field, value) {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm((prev) => ({ ...prev, [field]: value }));
   }
 
   function validate() {
     if (!form.name) return "Enter account holder name";
     if (!form.account) return "Enter account number";
-    if (form.account !== form.confirm) return "Account numbers don’t match";
-    if (!form.ifsc) return "Enter IFSC / routing code";
-    if (!file) return "Upload proof document";
-    if (!form.consent) return "You must confirm details are correct";
+    if (!form.ifsc) return "Enter IFSC code";
+    if (!form.consent) return "Please confirm details are correct";
     return "";
   }
+  async function handleSubmit() {
+  const err = validate();
 
-  function handleSubmit() {
-    const err = validate();
-    if (err) {
-      setError(err);
-      return;
-    }
-
-    setError("");
-    setStatus("pending");
-
-    // mark onboarding complete
-    const saved =
-      JSON.parse(localStorage.getItem("cook_onboarding_steps")) || {};
-
-    localStorage.setItem(
-      "cook_onboarding_steps",
-      JSON.stringify({ ...saved, banking: true })
-    );
-
-    // simulate verification
-    setTimeout(() => {
-      setStatus("verified");
-
-      setTimeout(() => {
-        navigate("/cookdashboard"); // change route if needed
-      }, 1500);
-
-    }, 2000);
+  if (err) {
+    setError(err);
+    return;
   }
 
+  setError("");
+  setStatus("pending");
+
+  try {
+
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    const params = new URLSearchParams();
+    params.append("userId", user.id);
+    params.append("accountHolderName", form.name);
+    params.append("accountNumber", form.account);
+    params.append("ifscCode", form.ifsc);
+
+    await axios.post(
+  "http://localhost:8080/api/homemaker/bank",
+  params
+);
+
+/* update onboarding step in localStorage */
+
+const userData = JSON.parse(localStorage.getItem("user"));
+
+if (userData) {
+
+  const stepsKey = `cook_onboarding_steps_${userData.email}`;
+
+  const savedSteps =
+    JSON.parse(localStorage.getItem(stepsKey)) || {};
+
+  savedSteps.banking = true;
+
+  localStorage.setItem(
+    stepsKey,
+    JSON.stringify(savedSteps)
+  );
+
+}
+
+setStatus("verified");
+
+setTimeout(() => {
+  navigate("/cook/login");
+}, 1200);
+  } catch (error) {
+    console.error(error);
+    setError("Failed to save bank details");
+    setStatus("idle");
+  }
+}
   return (
     <div className="min-h-screen bg-[#F6F2EF]">
       <main className="max-w-6xl mx-auto px-8 py-10 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-10">
-
         {/* LEFT FORM */}
         <div>
-
-          <h1 className="text-3xl font-bold">
-            Set up bank details
-          </h1>
+          <h1 className="text-3xl font-bold">Set up bank details</h1>
 
           <p className="text-gray-600 mt-2">
-            So we can pay you for meals you sell. We keep your data safe.
+            Add your bank account so we can send your earnings.
           </p>
 
           <div className="bg-white shadow-sm border rounded-2xl p-8 mt-8 space-y-6">
-
             <Input
-              label="Account holder name"
+              label="Account Holder Name"
               value={form.name}
-              onChange={v => update("name", v)}
-              placeholder="As on your bank account"
+              onChange={(v) => update("name", v)}
             />
 
             <Input
-              label="Account number"
+              label="Account Number"
               value={form.account}
-              onChange={v => update("account", v)}
-              placeholder="Enter account number"
+              onChange={(v) => update("account", v)}
               numeric
             />
 
             <Input
-              label="Confirm account number"
-              value={form.confirm}
-              onChange={v => update("confirm", v)}
-              placeholder="Re-enter account number"
-              numeric
-            />
-
-            <Input
-              label="IFSC / Routing code"
+              label="IFSC Code"
               value={form.ifsc}
-              onChange={v => update("ifsc", v)}
-              placeholder="Find on cheque or bank site"
+              onChange={(v) => update("ifsc", v)}
             />
 
-            <Input
-              label="Bank name"
-              value={form.bank}
-              onChange={v => update("bank", v)}
-            />
-
-            <Input
-              label="Branch (optional)"
-              value={form.branch}
-              onChange={v => update("branch", v)}
-            />
-
-            {/* upload */}
-            <div>
-              <p className="font-semibold">
-                Upload cancelled cheque / passbook
-              </p>
-
-              <label className="block mt-3 cursor-pointer">
-                <input
-                  type="file"
-                  className="hidden"
-                  onChange={e => setFile(e.target.files[0])}
-                />
-
-                <div className="border-2 border-dashed rounded-xl p-6 text-center bg-orange-50">
-                  {file
-                    ? <p className="text-green-600">{file.name}</p>
-                    : <p className="text-gray-600">Click to upload proof</p>}
-                </div>
-              </label>
-            </div>
-
-            {/* consent */}
+            {/* CONSENT */}
             <label className="flex gap-3 items-start text-sm">
               <input
                 type="checkbox"
                 checked={form.consent}
-                onChange={e => update("consent", e.target.checked)}
+                onChange={(e) => update("consent", e.target.checked)}
               />
-              I confirm these details are correct and allow MayBhojan to deposit payments.
+              I confirm these bank details are correct.
             </label>
 
             {error && <p className="text-red-500">{error}</p>}
 
             {status === "pending" && (
               <p className="text-orange-600 font-semibold">
-                Verification pending…
+                Verifying bank details...
               </p>
             )}
 
             {status === "verified" && (
               <p className="text-green-600 font-semibold">
-                ✅ Bank verified — payouts enabled
+                ✅ Bank account verified
               </p>
             )}
 
@@ -171,9 +145,8 @@ export default function CookBankSetup() {
               disabled={status === "pending"}
               className="w-full bg-orange-500 text-white py-4 rounded-xl font-semibold disabled:opacity-50"
             >
-              Save & verify
+              Save & Continue
             </button>
-
           </div>
         </div>
 
@@ -182,32 +155,30 @@ export default function CookBankSetup() {
           <h3 className="font-semibold">Why we ask this</h3>
 
           <p className="text-sm text-gray-600 mt-3">
-            Your earnings will be safely deposited into this account.
+            Your earnings from customer orders will be transferred directly to
+            this bank account.
           </p>
 
-          <p className="text-sm mt-6">
-            Approval usually takes 24–48 hours.
-          </p>
+          <p className="text-sm mt-6">Payments are usually processed weekly.</p>
 
           <button className="mt-6 text-orange-500 font-semibold">
-            Set up with help
+            Need help?
           </button>
         </aside>
-
       </main>
     </div>
   );
 }
 
-function Input({ label, value, onChange, placeholder, numeric }) {
+function Input({ label, value, onChange, numeric }) {
   return (
     <div>
       <p className="text-sm text-gray-600">{label}</p>
+
       <input
         type={numeric ? "number" : "text"}
         value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
         className="w-full mt-1 px-4 py-3 border rounded-xl"
       />
     </div>

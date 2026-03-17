@@ -3,24 +3,42 @@ import { createContext, useContext, useState } from "react";
 const FavoritesContext = createContext();
 
 export function FavoriteProvider({ children }) {
+
   const [favorites, setFavorites] = useState([]);
 
   function toggleFavorite(meal) {
+
     setFavorites(prev => {
+
       const exists = prev.find(m => m.id === meal.id);
+
       if (exists) {
         return prev.filter(m => m.id !== meal.id);
       }
+
       return [...prev, meal];
+
     });
+
   }
 
   function isFavorite(id) {
     return favorites.some(m => m.id === id);
   }
 
+  function removeFavorite(id){
+    setFavorites(prev => prev.filter(m => m.id !== id));
+  }
+
   return (
-    <FavoritesContext.Provider value={{ favorites, toggleFavorite, isFavorite }}>
+    <FavoritesContext.Provider
+      value={{
+        favorites,
+        toggleFavorite,
+        isFavorite,
+        removeFavorite
+      }}
+    >
       {children}
     </FavoritesContext.Provider>
   );
