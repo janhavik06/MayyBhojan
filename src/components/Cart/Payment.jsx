@@ -20,7 +20,8 @@ export default function Payment() {
 
   const delivery = 35;
   const platform = 12;
-const taxes = total * 0.05;
+  const taxes = 28.5;
+
   const grand = total + delivery + platform + taxes;
 
   // ✅ FIXED useEffect
@@ -142,36 +143,36 @@ const taxes = total * 0.05;
       </div>
 
       {/* SUCCESS POPUP */}
-    {showSuccess && (
-  <>
-    <Confetti recycle={false} numberOfPieces={300} />
+      {showSuccess && (
+        <>
+          <Confetti recycle={false} numberOfPieces={300} />
 
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
 
-      <div className="bg-white rounded-3xl shadow-2xl p-10 text-center w-[420px]">
+            <div className="bg-white rounded-3xl shadow-2xl p-10 text-center w-[420px]">
 
-        <div className="text-green-500 text-6xl mb-4">✔</div>
+              <div className="text-green-500 text-6xl mb-4">✔</div>
 
-        <h2 className="text-2xl font-bold text-gray-800">
-          Order Placed Successfully!
-        </h2>
+              <h2 className="text-2xl font-bold text-gray-800">
+                Order Placed Successfully!
+              </h2>
 
-        <p className="text-gray-500 mt-2">
-          Your food is being prepared 🍛
-        </p>
+              <p className="text-gray-500 mt-2">
+                Your food is being prepared 🍛
+              </p>
 
-        <p className="text-sm text-gray-400 mt-1">
-          Redirecting to your order tracking...
-        </p>
+              <p className="text-sm text-gray-400 mt-1">
+                Redirecting to your order tracking...
+              </p>
 
-        <button
-          onClick={() => navigate("/orders")}
-          className="mt-6 bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold"
-        >
-          View My Orders
-        </button>
+              <button
+                onClick={() => navigate("/orders")}
+                className="mt-6 bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold"
+              >
+                View My Orders
+              </button>
 
-      </div>
+            </div>
 
           </div>
         </div>

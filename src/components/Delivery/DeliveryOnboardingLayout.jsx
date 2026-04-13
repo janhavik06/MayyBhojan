@@ -1,15 +1,14 @@
+import Navbar from "../Navbar/Navbar";
 import { Outlet } from "react-router-dom";
 
-export default function DeliveryOnboardingLayout() {
-
+export default function DeliveryOnboardingLayout({ loggedIn }) {
   return (
-    <div className="min-h-screen bg-[#F6F2EF]">
+    <>
+      <Navbar loggedIn={loggedIn} />
 
-      {/* Navbar or header if needed */}
-
-      <Outlet />
-
-    </div>
+      <main className="min-h-screen bg-[#F6F2EF]">
+        <Outlet />
+      </main>
+    </>
   );
-
 }
