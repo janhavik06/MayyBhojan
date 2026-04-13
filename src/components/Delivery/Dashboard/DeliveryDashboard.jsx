@@ -2,17 +2,13 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { getUser } from "../../../utils/getUser";
-
 export default function DeliveryDashboard() {
-
   const navigate = useNavigate();
 
   const [orders, setOrders] = useState([]);
   const [toast, setToast] = useState(null);
-
   const user = getUser();
   const partnerId = user?.id;
-
   const API = "http://localhost:8080/api/delivery";
 
   /* LOAD AVAILABLE ORDERS */
@@ -26,13 +22,10 @@ export default function DeliveryDashboard() {
     }, 5000);
 
     return () => clearInterval(interval);
-
   }, []);
 
   async function loadOrders() {
-
     try {
-
       const res = await axios.get(`${API}/orders`);
 
       const mapped = res.data.map((o) => ({
@@ -54,58 +47,104 @@ export default function DeliveryDashboard() {
       }));
 
       setOrders(mapped);
-
     } catch (err) {
-
       console.error("Error loading orders", err);
-
     }
-
   }
 
   /* ACCEPT ORDER */
-
   async function acceptOrder(order) {
-
     try {
+      await axios.put(`${API}/accept/${order.id}?partnerId=${partnerId}`);
 
-      await axios.put(
-        `${API}/accept/${order.id}?partnerId=${partnerId}`
-      );
+      setOrders((prev) => prev.filter((o) => o.id !== order.id));
 
-      setToast("Order Accepted 🚚");
+      setToast("Order Accepted");
 
       setTimeout(() => setToast(null), 2000);
 
+
       // remove order from available list
+      setOrders((prev) => prev.filter((o) => o.id !== order.id));
+
+      // redirect to active delivery page
+
       setOrders(prev => prev.filter(o => o.id !== order.id));
 
       // redirect to active delivery page
       navigate("/delivery/active");
-
     } catch (err) {
-
       console.error("Accept order error", err);
-
     }
-
   }
 
-  /* DECLINE ORDER */
+  setToast("Order Declined ❌");
 
+  setTimeout(() => setToast(null), 2000);
+}
+
+return (
+  <div className="bg-[#F6F2EF] min-h-screen p-8">
+    <h1 className="text-3xl font-bold mb-6">Available Deliveries</h1>
+
+    {orders.length === 0 && (
+      <p className="text-gray-500">No delivery orders available right now</p>
+    )}
+
+    <div className="space-y-6">
+      {orders.map((o) => (
+        <div key={o.id} className="bg-white p-6 rounded-xl shadow border">
+          <h3 className="font-semibold text-lg">Order #{o.id}</h3>
+
+          <p className="text-sm text-gray-500">Kitchen: {o.kitchen}</p>
+
+          <p className="text-sm text-gray-500">Pickup Address: {o.pickup}</p>
+
+          <p className="text-sm text-gray-500">Delivery Fee: ₹{o.earn}</p>
+
+          <p className="text-sm text-gray-500">Order Total: ₹{o.total}</p>
+
+          <p className="text-sm text-gray-500">Status: {o.status}</p>
+
+          <div className="flex gap-4 mt-4">
+            <button
+              onClick={() => declineOrder(o.id)}
+              className="flex-1 border border-red-400 text-red-500 py-2 rounded hover:bg-red-50"
+            >
+              Decline
+            </button>
+
+            <button
+              onClick={() => acceptOrder(o)}
+              className="flex-1 bg-orange-500 text-white py-2 rounded hover:bg-orange-600"
+            >
+              Accept Order
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* TOAST MESSAGE */}
+
+    {toast && (
+      <div className="fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded shadow-lg">
+        {toast}
+      </div>
+    )}
+  </div>
+);
   function declineOrder(orderId) {
+    setOrders((prev) => prev.filter((o) => o.id !== orderId));
 
-    setOrders(prev => prev.filter(o => o.id !== orderId));
-
-    setToast("Order Declined");
+    setToast("Order declined");
 
     setTimeout(() => setToast(null), 2000);
-
   }
 
-  return (
-
+  return (                
     <div className="bg-[#F6F2EF] min-h-screen p-8">
+      <h1 className="text-3xl font-bold mb-6">Available Deliveries</h1>
 
       <h1 className="text-3xl font-bold mb-6">
         Available Deliveries
@@ -120,74 +159,50 @@ export default function DeliveryDashboard() {
       )}
 
       <div className="space-y-6">
-
-        {orders.map(o => (
-
+        {orders.map((o) => (
           <div key={o.id} className="bg-white p-6 rounded-xl shadow border">
+            <h3 className="font-semibold text-lg">Order #{o.id}</h3>
 
-            <h3 className="font-semibold text-lg">
-              Order #{o.id}
-            </h3>
+            <p className="text-sm text-gray-500">Kitchen: {o.kitchen}</p>
 
-            <p className="text-sm text-gray-500">
-              Kitchen: {o.kitchen}
-            </p>
+            <p className="text-sm text-gray-500">Pickup Address: {o.pickup}</p>
 
-            <p className="text-sm text-gray-500">
-              Pickup Address: {o.pickup}
-            </p>
+            <p className="text-sm text-gray-500">Delivery Fee: ₹{o.earn}</p>
 
-            <p className="text-sm text-gray-500">
-              Delivery Fee: ₹{o.earn}
-            </p>
+            <p className="text-sm text-gray-500">Order Total: ₹{o.total}</p>
 
-            <p className="text-sm text-gray-500">
-              Order Total: ₹{o.total}
-            </p>
-
-            <p className="text-sm text-gray-500">
-              Status: {o.status}
-            </p>
+            <p className="text-sm text-gray-500">Status: {o.status}</p>
 
             <div className="flex gap-4 mt-4">
-
               <button
                 onClick={() => declineOrder(o.id)}
-                className="flex-1 border border-red-400 text-red-500 py-2 rounded hover:bg-red-50"
+                className="flex-1 border border-red-400 text-red-500 py-2 rounded"
               >
                 Decline
               </button>
 
               <button
                 onClick={() => acceptOrder(o)}
-                className="flex-1 bg-orange-500 text-white py-2 rounded hover:bg-orange-600"
+                className="flex-1 bg-orange-500 text-white py-2 rounded"
               >
                 Accept Order
               </button>
-
             </div>
-
           </div>
-
         ))}
-
       </div>
 
       {/* TOAST MESSAGE */}
 
       {toast && (
+        <div className="fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded">
 
         <div className="fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded shadow-lg">
 
           {toast}
 
         </div>
-
       )}
-
     </div>
-
   );
-
 }
-

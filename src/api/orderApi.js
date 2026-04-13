@@ -1,4 +1,4 @@
-import api from "./axios";
+import api from "axios";
 
 export const saveAddress = (data) => {
   return api.post("/address/save", data);
