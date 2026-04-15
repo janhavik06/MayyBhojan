@@ -32,10 +32,7 @@ export default function AuthFlow({ mode = "login", setLoggedIn }) {
 
   /* ================= SIGNUP ================= */
 
-<<<<<<< HEAD
-  /* ================= SIGNUP ================= */
-
-const handleSignup = async () => {
+ const handleSignup = async () => {
 
   if (!role) {
     setError("Please select a role");
@@ -50,8 +47,7 @@ const handleSignup = async () => {
       name,
       phone,
       email,
-      password,
-      role: backendRole
+      password
     };
 
     let url = "";
@@ -59,28 +55,24 @@ const handleSignup = async () => {
     if (backendRole === "CUSTOMER") url = `${API}/signup/customer`;
     if (backendRole === "HOMEMAKER") url = `${API}/signup/homemaker`;
     if (backendRole === "DELIVERY") url = `${API}/signup/delivery`;
+    if (backendRole === "ADMIN") url = `${API}/signup/admin`;
 
     const res = await axios.post(url, payload);
 
     const user = res.data;
 
-    localStorage.setItem("maybhojan_user", JSON.stringify(user));
+    // store user
+    localStorage.setItem("user", JSON.stringify(user));
 
-    alert("Signup successful");
-
-    /* redirect based on role */
-
+    /* DELIVERY → go to onboarding */
     if (backendRole === "DELIVERY") {
-      navigate("/delivery/onboarding");
+      navigate("/delivery/identity");
+      return;
     }
 
-    else if (backendRole === "HOMEMAKER") {
-      navigate("/cook/verification");
-    }
-
-    else {
-      navigate("/");
-    }
+    /* others go to login */
+    alert("Signup successful. Please login.");
+    navigate("/login");
 
   } catch (err) {
 
@@ -88,44 +80,7 @@ const handleSignup = async () => {
     setError("Signup failed");
 
   }
-
 };
-=======
-  const handleSignup = async () => {
-    if (!role) {
-      setError("Please select a role");
-      return;
-    }
-
-    try {
-      const backendRole = roleMap[role];
-
-      const payload = {
-        name,
-        phone,
-        email,
-        password
-      };
-
-      let url = "";
-
-      if (backendRole === "CUSTOMER") url = `${API}/signup/customer`;
-      if (backendRole === "HOMEMAKER") url = `${API}/signup/homemaker`;
-      if (backendRole === "DELIVERY") url = `${API}/signup/delivery`;
-      if (backendRole === "ADMIN") url = `${API}/signup/admin`;
-
-      await axios.post(url, payload);
-
-      alert("Signup successful. Please login.");
-
-      navigate("/login");
-    } catch (err) {
-      console.error(err);
-      setError("Signup failed");
-    }
-  };
->>>>>>> cbdde50348b247e86302d49e595a73c3b16fe4e2
-
   /* ================= LOGIN ================= */
 
   const handleLogin = async () => {

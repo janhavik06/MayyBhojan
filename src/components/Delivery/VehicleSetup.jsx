@@ -16,7 +16,7 @@ export default function VehicleSetup() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  async function handleSubmit() {
+async function handleSubmit() {
 
   if (!form.vehicleType || !form.number) {
     setError("Please fill all fields");
@@ -27,17 +27,29 @@ export default function VehicleSetup() {
 
     const user = getUser();
 
-    await axios.put(
-      "http://localhost:8080/api/delivery-partner/vehicle",
-      null,
-      {
-        params: {
-          userId: user.id,
-          vehicleType: form.vehicleType,
-          vehicleNumber: form.number
-        }
-      }
-    );
+await axios.put(
+  "http://localhost:8080/api/delivery-partner/vehicle",
+  {
+    userId: user.id,
+    vehicleType: form.vehicleType,
+    vehicleNumber: form.number
+  }
+);
+
+/* MARK VEHICLE COMPLETE */
+
+const stepsKey = `delivery_onboarding_steps_${user.email}`;
+
+const saved = JSON.parse(localStorage.getItem(stepsKey)) || {};
+
+const updated = {
+  ...saved,
+  vehicle: true
+};
+
+localStorage.setItem(stepsKey, JSON.stringify(updated));
+
+navigate("/delivery/onboarding");
 
     navigate("/delivery/onboarding");
 
@@ -49,7 +61,6 @@ export default function VehicleSetup() {
   }
 
 }
-
   return (
     <div className="min-h-screen bg-[#F6F2EF]">
       <main className="max-w-6xl mx-auto px-8 py-10 grid lg:grid-cols-[2fr_1fr] gap-10">

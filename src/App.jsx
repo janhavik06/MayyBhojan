@@ -42,7 +42,8 @@ import DeliveryVerification from "./components/Delivery/DeliveryVerification";
 import VehicleSetup from "./components/Delivery/VehicleSetup";
 import DeliveryOnboardingLayout from "./components/Delivery/DeliveryOnboardingLayout";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
-import AdminDeliveryApprovals from "../Admin/Dashboard/AdminDeliveryApprovals";
+import AdminDeliveryApprovals from "./components/Admin/Dashboard/AdminDeliveryApprovals";
+
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(() => {
     const user = JSON.parse(localStorage.getItem("maybhojan_user"));

@@ -19,35 +19,46 @@ export default function DeliveryIdentity() {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  async function handleSubmit() {
-    if (!form.name || !form.phone || !form.address) {
-      setError("Please fill all required fields");
-      return;
-    }
+async function handleSubmit() {
 
-    try {
-      const user = getUser();
-
-      await axios.post(
-        "http://localhost:8080/api/delivery-partner/identity",
-        null,
-        {
-         params: {
-  userId: user.id,
-  fullName: form.name,
-  phone: form.phone,
-  dob: form.dob,
-  address: form.address
-},
-        }
-      );
-
-      navigate("/delivery/verification");
-    } catch (err) {
-      console.error(err);
-      setError("Failed to save identity");
-    }
+  if (!form.name || !form.phone || !form.address) {
+    setError("Please fill all required fields");
+    return;
   }
+
+  try {
+
+    const user = getUser();
+
+   await axios.post(
+  "http://localhost:8080/api/delivery-partner/identity",
+  {
+    userId: user.id,
+    fullName: form.name,
+    phone: form.phone,
+    dob: form.dob,
+    address: form.address
+  }
+);
+const stepsKey = `delivery_onboarding_steps_${user.email}`;
+
+const saved = JSON.parse(localStorage.getItem(stepsKey)) || {};
+
+const updated = {
+  ...saved,
+  identity: true
+};
+
+localStorage.setItem(stepsKey, JSON.stringify(updated));
+    navigate("/delivery/verification");
+
+  } catch (err) {
+
+    console.error(err);
+    setError("Failed to save identity");
+
+  }
+}
 
   return (
     <div className="min-h-screen bg-[#F6F2EF]">
@@ -62,8 +73,7 @@ export default function DeliveryIdentity() {
           <div className="bg-white rounded-2xl shadow-sm p-8 mt-8 space-y-6">
             <Input label="Full Name" name="name" value={form.name} onChange={handleChange} />
             <Input label="Phone Number" name="phone" value={form.phone} onChange={handleChange} />
-            <Input label="Date of Birth" name="dob" type="date" value={form.dob} onChange={handleChange} />
-            <Input label="Address" name="address" value={form.address} onChange={handleChange} />
+            <Input label="Date of Birth" name="dob" type="date" value={form.dob} onChange={handleChange}/>            <Input label="Address" name="address" value={form.address} onChange={handleChange} />
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
